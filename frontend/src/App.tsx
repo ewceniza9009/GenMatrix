@@ -1,0 +1,48 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import DashboardLayout from './components/DashboardLayout';
+import DashboardHome from './pages/DashboardHome';
+import AdminDashboard from './pages/AdminDashboard';
+import EnrollMember from './pages/EnrollMember';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import { useSelector } from 'react-redux';
+import { RootState } from './store';
+
+const PrivateRoute = ({ children }: { children: JSX.Element }) => {
+  const token = useSelector((state: RootState) => state.auth.token);
+  return token ? children : <Navigate to="/login" />;
+};
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        
+        {/* Protected Dashboard Routes */}
+        <Route 
+          path="/" 
+          element={
+            <PrivateRoute>
+              <DashboardLayout />
+            </PrivateRoute>
+          } 
+        >
+          <Route index element={<DashboardHome />} />
+          <Route path="network" element={<DashboardHome />} /> {/* Reuse for demo */}
+          <Route path="enroll" element={<EnrollMember />} />
+          <Route path="wallet" element={<div className="text-white p-6">Wallet Module Coming Soon</div>} />
+          <Route path="settings" element={<div className="text-white p-6">Settings Module Coming Soon</div>} />
+          
+          {/* Admin Routes */}
+          <Route path="admin" element={<AdminDashboard />} />
+          <Route path="admin/commissions" element={<div className="text-white p-6">Commission Logs Coming Soon</div>} />
+        </Route>
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
