@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../store/authSlice';
+import { api } from '../store/api'; // <--- ADDED: Import API to access cache reset
 import { RootState } from '../store';
 
 const SidebarLink = ({ to, icon: Icon, label, active }: { to: string, icon: any, label: string, active: boolean }) => (
@@ -37,6 +38,7 @@ const DashboardLayout = () => {
 
   const handleLogout = () => {
     dispatch(logout());
+    dispatch(api.util.resetApiState()); // <--- ADDED: Clears the $5022 cache immediately
     navigate('/login');
   };
 
