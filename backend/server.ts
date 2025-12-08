@@ -11,7 +11,7 @@ import morgan from 'morgan';
 import authRoutes from './routes/authRoutes';
 import genealogyRoutes from './routes/genealogyRoutes';
 import adminRoutes from './routes/adminRoutes';
-import walletRoutes from './routes/walletRoutes'; // Ensure this exists from previous steps
+import walletRoutes from './routes/walletRoutes';
 
 const app = express();
 
@@ -32,9 +32,10 @@ app.get('/', (req, res) => {
   res.send('MLM Backend API Running (TS)');
 });
 
-// Mount API Routes
-app.use('/api/v1/auth', authRoutes);       // <--- CRITICAL FOR LOGIN
-app.use('/api/v1/network', genealogyRoutes);
+// --- MOUNT ROUTES ---
+// This connects the files we just fixed to the actual URLs
+app.use('/api/v1/auth', authRoutes);       // Enables /api/v1/auth/login
+app.use('/api/v1/network', genealogyRoutes); // Enables /api/v1/network/upline
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/wallet', walletRoutes);
 

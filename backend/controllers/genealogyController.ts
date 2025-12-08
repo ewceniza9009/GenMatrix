@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import User, { IUser } from '../models/User';
+import Commission from '../models/Commission'; // Import Commission
 import { Types } from 'mongoose';
 
 // Get Tree
@@ -11,7 +12,7 @@ export const getTree = async (req: Request, res: Response) => {
     if (rootId) {
       root = await User.findById(rootId);
     } else {
-      // Prefer 'root' username for default tree view, otherwise fallback to any level 0
+      // Default to root user
       root = await User.findOne({ username: 'root' });
       if (!root) {
          root = await User.findOne({ level: 0 }); 
@@ -20,8 +21,8 @@ export const getTree = async (req: Request, res: Response) => {
 
     if (!root) return res.status(404).json({ message: 'Root not found' });
 
-    const tree = await buildTree(root, 3);
-    console.log('ROOT TREE ATTRIBUTES:', tree?.attributes);
+    // Build tree with depth 4 for better visibility
+    const tree = await buildTree(root, 4);
     res.json(tree);
 
   } catch (err) {
@@ -37,6 +38,7 @@ interface TreeNode {
     active: boolean;
     leftPV?: number;
     rightPV?: number;
+    totalEarned?: number; // Added field
   };
   children: TreeNode[];
 }
@@ -44,15 +46,8 @@ interface TreeNode {
 const buildTree = async (node: IUser, depth: number): Promise<TreeNode | null> => {
   if (depth < 0 || !node) return null;
 
-  // Debug Log
-  if (node.username === 'root' || node.username === 'admin') {
-     console.log(`DEBUG NODE ${node.username}:`, { 
-        id: node._id, 
-        left: node.currentLeftPV, 
-        right: node.currentRightPV,
-        raw: node.toObject ? node.toObject() : node
-     });
-  }
+  // Fetch Commission Data for this node
+  const commission = await Commission.findOne({ userId: node._id });
 
   const nodeData: TreeNode = {
     name: node.username,
@@ -60,8 +55,9 @@ const buildTree = async (node: IUser, depth: number): Promise<TreeNode | null> =
       id: node._id as Types.ObjectId,
       rank: node.rank,
       active: node.isActive,
-      leftPV: node.currentLeftPV !== undefined ? node.currentLeftPV : 0,
-      rightPV: node.currentRightPV !== undefined ? node.currentRightPV : 0
+      leftPV: node.currentLeftPV || 0,
+      rightPV: node.currentRightPV || 0,
+      totalEarned: commission ? commission.totalEarned : 0 // Include total earnings
     },
     children: []
   };
@@ -94,7 +90,7 @@ export const getUpline = async (req: Request, res: Response) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     res.json({
-      sponsor: user.sponsorId
+      sponsor: user.sponsorId // This will be null if they are Root
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error retrieving upline' });

@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardLayout from './components/DashboardLayout';
 import DashboardHome from './pages/DashboardHome';
@@ -8,6 +9,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import WalletPage from './pages/Wallet';
 import Settings from './pages/Settings';
+import Network from './pages/Network'; // <--- IMPORT THE NEW PAGE
 import { useSelector } from 'react-redux';
 import { RootState } from './store';
 
@@ -33,7 +35,7 @@ function App() {
           } 
         >
           <Route index element={<DashboardHome />} />
-          <Route path="network" element={<DashboardHome />} /> {/* Reuse for demo */}
+          <Route path="network" element={<Network />} /> {/* <--- UPDATE THIS LINE */}
           <Route path="enroll" element={<EnrollMember />} />
           <Route path="wallet" element={<WalletPage />} />
           <Route path="settings" element={<Settings />} />

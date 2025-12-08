@@ -1,11 +1,12 @@
 import express from 'express';
-import { getSystemStats, runCommissionRun, getSystemLogs } from '../controllers/adminController';
-import { protect, admin } from '../middleware/authMiddleware';
+import * as authController from '../controllers/authController';
 
 const router = express.Router();
 
-router.get('/stats', protect, admin, getSystemStats);
-router.get('/logs', protect, admin, getSystemLogs); // New route
-router.post('/run-commissions', protect, admin, runCommissionRun);
+// Register Route
+router.post('/register', authController.register);
+
+// Login Route
+router.post('/login', authController.login);
 
 export default router;

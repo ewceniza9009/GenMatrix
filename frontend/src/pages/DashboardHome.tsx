@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import TreeVisualizer from '../components/TreeVisualizer';
 import StatsCard from '../components/StatsCard';
-import { DollarSign, Users, TrendingUp, Activity, ChevronUp, ChevronDown } from 'lucide-react';
+import { DollarSign, Users, TrendingUp, Activity, ChevronUp, ChevronDown, UserCheck } from 'lucide-react';
 
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { useGetUplineQuery } from '../store/api';
+import { useGetUplineQuery, useGetWalletQuery } from '../store/api';
 
 const DashboardHome = () => {
   const user = useSelector((state: RootState) => state.auth.user);
-  const { data: uplineData } = useGetUplineQuery(user?.id, { skip: !user?.id });
+  
+  // Fetch Sponsor Data
+  const { data: uplineData, isLoading: uplineLoading } = useGetUplineQuery(user?.id, { skip: !user?.id });
   const sponsor = uplineData?.sponsor;
+
+  // Fetch Wallet Data for Stats
+  const { data: wallet } = useGetWalletQuery(undefined);
 
   const [isOverviewExpanded, setIsOverviewExpanded] = useState(true);
 
@@ -30,86 +35,67 @@ const DashboardHome = () => {
         </button>
       </div>
       
-      {/* Collapsible Section */}
+      {/* Collapsible Stats Section */}
       {isOverviewExpanded && (
         <div className="space-y-6 shrink-0 animation-fade-in">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatsCard 
                 title="Total Earnings" 
-                value="$12,450.00" 
+                value={`$${wallet?.balance?.toFixed(2) || '0.00'}`} 
                 icon={DollarSign} 
-                trend="+12% from last month"
+                trend="Current Balance"
                 trendUp={true}
                 />
                 <StatsCard 
-                title="Direct Reports" 
-                value="24" 
-                icon={Users} 
-                trend="+4 this week"
+                title="Sponsor" 
+                value={uplineLoading ? '...' : (sponsor?.username || 'Root Account')} 
+                icon={UserCheck} 
+                trend={sponsor ? 'Active' : 'System Head'}
                 trendUp={true}
                 />
                 <StatsCard 
-                title="Network Volume" 
-                value="45,200 PV" 
+                title="Left Volume" 
+                value="Check Tree" 
                 icon={Activity} 
-                trend="Left Leg Strong"
+                trend="Live Data"
                 trendUp={true}
                 />
                 <StatsCard 
-                title="Next Rank" 
-                value="85%" 
+                title="Current Rank" 
+                value={user?.role === 'admin' ? 'Admin' : 'Member'} 
                 icon={TrendingUp} 
-                trend="Close to Platinum"
+                trend="Upgrade Eligible"
                 trendUp={true}
                 />
             </div>
 
-            {/* Network Tools */}
-            <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
-                <h2 className="text-xl font-semibold text-white mb-4">Network Tools</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Referral Links */}
-                <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-slate-400">Your Referral Links</h3>
-                    <div className="flex space-x-2">
-                        <button className="flex-1 bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-sm transition-colors border border-slate-600">
-                        Copy Left Leg Link
-                        </button>
-                        <button className="flex-1 bg-slate-700 hover:bg-slate-600 text-white p-2 rounded text-sm transition-colors border border-slate-600">
-                        Copy Right Leg Link
-                        </button>
-                    </div>
+            {/* Quick Actions Bar */}
+            <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-wrap gap-4 items-center justify-between">
+                <div className="text-slate-300 text-sm">
+                    <span className="text-slate-500 mr-2">Your Referral Link:</span>
+                    <code className="bg-slate-900 px-2 py-1 rounded text-teal-400">https://mlm.app/ref/{user?.username}</code>
                 </div>
-
-                {/* Manual Actions */}
-                <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-slate-400">Quick Actions</h3>
-                    <div className="flex space-x-4 items-center">
-                        <button 
-                        onClick={() => window.location.href = '/enroll'}
-                        className="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
-                        >
-                            <Users size={18} />
-                            <span>Enroll New Member</span>
-                        </button>
-                        <div className="text-xs text-slate-500">
-                            <div>Your Sponsor: <span className="text-teal-400">{sponsor ? `${sponsor.username}` : 'Loading...'}</span></div>
-                            <div>Current Rank: <span className="text-yellow-500">Silver</span></div>
-                        </div>
-                    </div>
-                </div>
-                </div>
+                <button 
+                    onClick={() => window.location.href = '/enroll'}
+                    className="bg-teal-600 hover:bg-teal-500 text-white px-6 py-2 rounded-lg font-bold transition flex items-center gap-2"
+                >
+                    <Users size={18} /> Enroll New Member
+                </button>
             </div>
         </div>
       )}
 
-      {/* Tree Section - Fills remaining space */}
-      <div className={`flex-1 flex flex-col min-h-[500px] transition-all duration-300 ${isOverviewExpanded ? '' : 'h-full'}`}>
-        {!isOverviewExpanded && <h2 className="text-xl font-semibold text-white mb-4">Live Network Tree</h2>}
-         {isOverviewExpanded && <h2 className="text-xl font-semibold text-white mb-4">Live Network Tree</h2>}
+      {/* BIGGER TREE SECTION */}
+      <div className={`flex-1 flex flex-col transition-all duration-300 w-full ${isOverviewExpanded ? 'h-[600px]' : 'h-[85vh]'}`}>
+        <div className="flex justify-between items-center mb-2">
+            <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                <Activity className="text-teal-400" /> Live Genealogy
+            </h2>
+            <div className="text-xs text-slate-400">Scroll to zoom • Drag to move</div>
+        </div>
         
-        <div className="flex-1 bg-slate-900 rounded-xl overflow-hidden shadow-2xl border border-slate-700 relative">
+        <div className="flex-1 bg-slate-900 rounded-xl overflow-hidden shadow-2xl border border-slate-700 relative w-full h-full">
            <TreeVisualizer />
         </div>
       </div>

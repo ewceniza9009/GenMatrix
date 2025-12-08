@@ -13,7 +13,7 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ['User', 'Tree', 'Wallet', 'SystemLogs'], // Added SystemLogs tag
+  tagTypes: ['User', 'Tree', 'Wallet', 'SystemLogs', 'Commissions'],
   endpoints: (builder) => ({
     getTree: builder.query({
       query: (rootId) => `network/tree${rootId ? `?rootId=${rootId}` : ''}`,
@@ -56,16 +56,21 @@ export const api = createApi({
         }),
         invalidatesTags: ['User']
     }),
-    getSystemLogs: builder.query({ // New Endpoint
+    getSystemLogs: builder.query({
         query: () => 'admin/logs',
         providesTags: ['SystemLogs']
+    }),
+    // NEW: Fetch Commission History
+    getAdminCommissions: builder.query({
+        query: () => 'admin/commissions',
+        providesTags: ['Commissions']
     }),
     runCommissions: builder.mutation({
       query: () => ({
         url: 'admin/run-commissions',
         method: 'POST',
       }),
-      invalidatesTags: ['Wallet', 'User', 'SystemLogs'], // Invalidate logs to auto-refresh UI
+      invalidatesTags: ['Wallet', 'User', 'SystemLogs', 'Commissions'],
     }),
   }),
 });
@@ -79,5 +84,6 @@ export const {
   useRequestWithdrawalMutation,
   useUpdateProfileMutation,
   useRunCommissionsMutation,
-  useGetSystemLogsQuery // Export new hook
+  useGetSystemLogsQuery,
+  useGetAdminCommissionsQuery
 } = api;

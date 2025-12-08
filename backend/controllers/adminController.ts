@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import User from '../models/User';
 import Commission from '../models/Commission';
-import SystemLog from '../models/SystemLog'; 
+import SystemLog from '../models/SystemLog';
 import { CommissionEngine } from '../services/CommissionEngine';
 
 export const getSystemStats = async (req: Request, res: Response) => {
@@ -21,20 +21,50 @@ export const getSystemStats = async (req: Request, res: Response) => {
   }
 };
 
-// Fetch logs for the frontend
 export const getSystemLogs = async (req: Request, res: Response) => {
   try {
-    const logs = await SystemLog.find()
-      .sort({ timestamp: -1 })
-      .limit(50);
+    const logs = await SystemLog.find().sort({ timestamp: -1 }).limit(50);
     res.json(logs);
   } catch (error) {
-    console.error('Log error:', error);
     res.status(500).json({ message: 'Error fetching logs' });
   }
 };
 
-// Run the payout cycle
+// --- NEW FUNCTION: Fetch Commission History ---
+export const getCommissionsHistory = async (req: Request, res: Response) => {
+  try {
+    // Aggregate all history entries from all Commission documents
+    const history = await Commission.aggregate([
+      { $unwind: '$history' },
+      { $sort: { 'history.date': -1 } },
+      { $limit: 100 },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'user'
+        }
+      },
+      { $unwind: '$user' },
+      {
+        $project: {
+          username: '$user.username',
+          amount: '$history.amount',
+          type: '$history.type',
+          date: '$history.date',
+          details: '$history.details'
+        }
+      }
+    ]);
+
+    res.json(history);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching commission history' });
+  }
+};
+
 export const runCommissionRun = async (req: Request, res: Response) => {
   try {
     const users = await User.find({ isActive: true });
