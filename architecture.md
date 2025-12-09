@@ -1,7 +1,5 @@
 # ARCHITECTURE.MD
 
-This document provides a comprehensive, industry-grade architecture blueprint for a Binary Multi-Level Marketing (MLM) application. The design draws inspiration from established Binary MLM compensation models, as detailed in resources like the Epixel MLM Software Binary Compensation Plan. It emphasizes scalability, security, real-time processing, and efficiency to handle large-scale networks with millions of users, deep tree structures, and high-concurrency operations. The system replicates advanced genealogy tree visualization, spillover mechanisms, multi-ratio pairing bonuses, carry-forward/flushing rules, and diverse commission types while leveraging the MERN Stack (MongoDB, Express, React, Node.js) + Vite for rapid development and performance.
-
 The architecture is structured as a RESTful monolith for initial simplicity and ease of development, with clear separation of concerns, modular components, and event hooks to facilitate future enhancements. This includes preparing for asynchronous processing (e.g., via message queues), caching layers, and containerized deployment without incorporating them in the current implementation. For instance, commission and spillover logic are encapsulated in isolated modules with synchronous execution now, but designed with event emitters and configurable triggers for seamless integration of queues or caches later.
 
 ## 1. High-Level Architecture
