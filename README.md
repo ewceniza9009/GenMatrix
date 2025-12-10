@@ -106,5 +106,10 @@ The frontend is a React application powered by Vite.
 <img width="1919" height="910" alt="image" src="https://github.com/user-attachments/assets/9252b3f6-7680-4452-9d56-1df032c7cae3" />
 
 
+https://github.com/user-attachments/assets/381e6f26-e5a0-4947-80d7-8414c1b4df6e
+
+
+
+
 
 
