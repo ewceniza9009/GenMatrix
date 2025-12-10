@@ -94,6 +94,10 @@ const DashboardLayout = () => {
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                   Run Commissions
                 </button>
+                <button onClick={() => navigate('/admin/packages')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-amber-100/70 hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                  Packages
+                </button>
               </div>
             </div>
           )}

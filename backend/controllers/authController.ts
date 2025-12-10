@@ -64,7 +64,8 @@ export const register = async (req: Request, res: Response) => {
 
       // Trigger Bonuses (Lazy Load to avoid circular dependency issues)
       const { CommissionEngine } = require('../services/CommissionEngine');
-      await CommissionEngine.distributeReferralBonus(sponsor.id, savedUser._id.toString());
+      const pkgPrice = pkg ? pkg.price : 0;
+      await CommissionEngine.distributeReferralBonus(sponsor.id, savedUser._id.toString(), pkgPrice);
       if (pkg && pkg.pv) {
         await CommissionEngine.updateUplinePV(savedUser._id.toString(), pkg.pv);
       }

@@ -48,10 +48,12 @@ export const placeUserManually = async (req: Request, res: Response) => {
         await parent.save();
         await userToPlace.save(); // pre-save hook handles path/level updates
 
-        // Trigger Commissions (Bonuses delayed until placement)
-        await CommissionEngine.distributeReferralBonus(sponsorId, userToPlace._id as any);
-
         const pkg: any = userToPlace.enrollmentPackage;
+
+        // Trigger Commissions (Bonuses delayed until placement)
+        const pkgPrice = pkg ? pkg.price : 0;
+        await CommissionEngine.distributeReferralBonus(sponsorId, userToPlace._id as any, pkgPrice);
+
         if (pkg && pkg.pv) {
             await CommissionEngine.updateUplinePV(userToPlace._id as any, pkg.pv);
         }

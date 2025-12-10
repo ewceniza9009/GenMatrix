@@ -5,6 +5,9 @@ export interface IPackage extends Document {
   price: number;
   pv: number;
   description?: string;
+  features: string[];
+  badge?: string;
+  isActive: boolean;
   bonuses: {
     type: string;
     value: number;
@@ -16,8 +19,11 @@ const packageSchema = new Schema<IPackage>({
   price: { type: Number, required: true },
   pv: { type: Number, required: true },
   description: { type: String },
+  features: [{ type: String }],
+  badge: { type: String },
+  isActive: { type: Boolean, default: true },
   bonuses: [{
-    type: { type: String }, 
+    type: { type: String },
     value: { type: Number }
   }]
 });

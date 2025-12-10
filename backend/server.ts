@@ -10,6 +10,7 @@ import morgan from 'morgan';
 import authRoutes from './routes/authRoutes';
 import genealogyRoutes from './routes/genealogyRoutes';
 import adminRoutes from './routes/adminRoutes';
+import packageRoutes from './routes/packageRoutes';
 import walletRoutes from './routes/walletRoutes';
 
 import { seedDatabase } from './services/seederService';
@@ -26,7 +27,7 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/mlm';
 mongoose.connect(MONGO_URI)
   .then(async () => {
     console.log('MongoDB Connected');
-    
+
     await seedDatabase();
 
     const PORT = process.env.PORT || 5000;
@@ -35,7 +36,7 @@ mongoose.connect(MONGO_URI)
     });
   })
   .catch(err => console.error('MongoDB Connection Error:', err));
-  
+
 app.get('/', (req, res) => {
   res.send('MLM Backend API Running (TS)');
 });
@@ -43,4 +44,5 @@ app.get('/', (req, res) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/network', genealogyRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/wallet', walletRoutes);

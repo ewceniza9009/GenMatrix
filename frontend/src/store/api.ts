@@ -13,7 +13,7 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ['User', 'Tree', 'Wallet', 'SystemLogs', 'Commissions'],
+  tagTypes: ['User', 'Tree', 'Wallet', 'SystemLogs', 'Commissions', 'Package', 'Admin'],
   endpoints: (builder) => ({
     getTree: builder.query({
       query: (rootId) => `network/tree${rootId ? `?rootId=${rootId}` : ''}`,
@@ -69,17 +69,18 @@ export const api = createApi({
     }),
     getAdminCommissions: builder.query({
       query: (params) => {
+        if (!params) return 'admin/commissions';
         const qs = new URLSearchParams(params).toString();
         return `admin/commissions?${qs}`;
       },
-      providesTags: ['Commissions']
+      providesTags: ['Admin'],
     }),
     runCommissions: builder.mutation({
       query: () => ({
         url: 'admin/run-commissions',
         method: 'POST',
       }),
-      invalidatesTags: ['Wallet', 'User', 'SystemLogs', 'Commissions'],
+      invalidatesTags: ['Wallet', 'Admin'],
     }),
     getConfig: builder.query({
       query: () => 'admin/config',
@@ -91,6 +92,35 @@ export const api = createApi({
         body: data,
       }),
       // Invalidate nothing or maybe refetch config if needed, but result returns new config
+    }),
+
+    // Package Management
+    getPackages: builder.query({
+      query: (isAdmin) => `packages${isAdmin ? '?all=true' : ''}`,
+      providesTags: ['Package'],
+    }),
+    createPackage: builder.mutation({
+      query: (body) => ({
+        url: 'packages',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Package'],
+    }),
+    updatePackage: builder.mutation({
+      query: ({ id, ...body }) => ({
+        url: `packages/${id}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Package'],
+    }),
+    deletePackage: builder.mutation({
+      query: (id) => ({
+        url: `packages/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Package'],
     }),
 
     // Holding Tank & Search
@@ -127,5 +157,9 @@ export const {
   useUpdateConfigMutation,
   useGetHoldingTankQuery,
   usePlaceMemberMutation,
-  useLazySearchDownlineQuery
+  useLazySearchDownlineQuery,
+  useGetPackagesQuery,
+  useCreatePackageMutation,
+  useUpdatePackageMutation,
+  useDeletePackageMutation
 } = api;

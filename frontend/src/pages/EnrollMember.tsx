@@ -2,22 +2,24 @@
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { useRegisterMutation, useLazySearchDownlineQuery } from '../store/api';
+import { useRegisterMutation, useLazySearchDownlineQuery, useGetPackagesQuery } from '../store/api';
 import React, { useState, useEffect, useRef } from 'react';
-import { UserPlus, ArrowLeft, CheckCircle, AlertCircle, Search } from 'lucide-react';
+import { UserPlus, ArrowLeft, CheckCircle, AlertCircle, Search, Package } from 'lucide-react';
 
 const EnrollMember = () => {
   const navigate = useNavigate();
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const [registerUser, { isLoading }] = useRegisterMutation();
   const [triggerSearch, { data: searchResults, isFetching: isSearching }] = useLazySearchDownlineQuery();
+  const { data: packages = [] } = useGetPackagesQuery(false); // Only active packages
 
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: 'password123',
     position: 'left',
-    sponsorUsername: ''
+    sponsorUsername: '',
+    packageName: ''
   });
 
   const [showDropdown, setShowDropdown] = useState(false);
@@ -53,6 +55,13 @@ const EnrollMember = () => {
     }
   }, [currentUser]);
 
+  // Auto-select first package if available and none selected
+  useEffect(() => {
+    if (packages.length > 0 && !formData.packageName) {
+      setFormData(prev => ({ ...prev, packageName: packages[0].name }));
+    }
+  }, [packages]);
+
   const [error, setError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -68,6 +77,11 @@ const EnrollMember = () => {
       return;
     }
 
+    if (!formData.packageName) {
+      setError("Please select a package.");
+      return;
+    }
+
     try {
       await registerUser({
         username: formData.username,
@@ -75,7 +89,7 @@ const EnrollMember = () => {
         password: formData.password,
         sponsorUsername: formData.sponsorUsername || currentUser?.username,
         spilloverPreference: formData.position as 'left' | 'right' | 'weaker_leg',
-        packageName: 'Starter'
+        packageName: formData.packageName
       }).unwrap();
 
       navigate('/');
@@ -85,7 +99,7 @@ const EnrollMember = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <button
         onClick={() => navigate('/')}
         className="flex items-center space-x-2 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white mb-6 transition-colors"
@@ -112,58 +126,94 @@ const EnrollMember = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">New Username</label>
-              <input
-                type="text"
-                name="username"
-                required
-                value={formData.username}
-                onChange={handleChange}
-                className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg p-3 text-gray-900 dark:text-white focus:outline-none focus:border-teal-500 transition-colors"
-                placeholder="e.g. johndoe"
-              />
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* User Details Section */}
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-slate-700 pb-2">1. Account Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">New Username</label>
+                <input
+                  type="text"
+                  name="username"
+                  required
+                  value={formData.username}
+                  onChange={handleChange}
+                  className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg p-3 text-gray-900 dark:text-white focus:outline-none focus:border-teal-500 transition-colors"
+                  placeholder="e.g. johndoe"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Email Address</label>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg p-3 text-gray-900 dark:text-white focus:outline-none focus:border-teal-500 transition-colors"
+                  placeholder="john@example.com"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Email Address</label>
-              <input
-                type="email"
-                name="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg p-3 text-gray-900 dark:text-white focus:outline-none focus:border-teal-500 transition-colors"
-                placeholder="john@example.com"
-              />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Temporary Password</label>
+                <input
+                  type="text"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg p-3 text-gray-900 dark:text-white focus:outline-none focus:border-teal-500 transition-colors"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Placement Strategy</label>
+                <select
+                  name="position"
+                  value={formData.position}
+                  onChange={handleChange}
+                  className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg p-3 text-gray-900 dark:text-white focus:outline-none focus:border-teal-500 transition-colors"
+                >
+                  <option value="left">Place on Left Leg</option>
+                  <option value="right">Place on Right Leg</option>
+                  <option value="auto">Auto-Balance (Weak Leg)</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Temporary Password</label>
-              <input
-                type="text"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg p-3 text-gray-900 dark:text-white focus:outline-none focus:border-teal-500 transition-colors"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Placement Strategy</label>
-              <select
-                name="position"
-                value={formData.position}
-                onChange={handleChange}
-                className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg p-3 text-gray-900 dark:text-white focus:outline-none focus:border-teal-500 transition-colors"
-              >
-                <option value="left">Place on Left Leg</option>
-                <option value="right">Place on Right Leg</option>
-                <option value="auto">Auto-Balance (Weak Leg)</option>
-              </select>
-              <p className="text-xs text-gray-500 dark:text-slate-500">Determines where they fall in the binary tree.</p>
+          {/* Package Selection Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-slate-700 pb-2">2. Select Package</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {packages.map((pkg: any) => (
+                <div
+                  key={pkg._id}
+                  onClick={() => setFormData({ ...formData, packageName: pkg.name })}
+                  className={`cursor-pointer border rounded-xl p-4 transition-all relative
+                            ${formData.packageName === pkg.name
+                      ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 ring-1 ring-teal-500'
+                      : 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 hover:border-gray-300 dark:hover:border-slate-600'
+                    }
+                        `}
+                >
+                  {formData.packageName === pkg.name && (
+                    <div className="absolute top-2 right-2 text-teal-600 dark:text-teal-400">
+                      <CheckCircle size={18} fill="currentColor" className="text-teal-500 bg-white dark:bg-transparent rounded-full" />
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 mb-2">
+                    <Package size={18} className="text-gray-400" />
+                    <span className="font-bold text-gray-900 dark:text-white">{pkg.name}</span>
+                  </div>
+                  <div className="text-2xl font-bold text-teal-600 dark:text-teal-400 mb-1">${pkg.price}</div>
+                  <div className="text-xs text-gray-500 dark:text-slate-400 font-mono mb-2">{pkg.pv} PV</div>
+                  <p className="text-xs text-gray-600 dark:text-slate-400 line-clamp-2">{pkg.description}</p>
+                </div>
+              ))}
             </div>
           </div>
 

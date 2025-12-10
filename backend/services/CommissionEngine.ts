@@ -5,12 +5,13 @@ import SystemConfig from '../models/SystemConfig';
 
 export class CommissionEngine {
 
-  // 1. Referral Bonus: 10% of Package Price (Fixed $10 for demo)
-  static async distributeReferralBonus(sponsorId: string, newUserId: string) {
+  // 1. Referral Bonus: 10% of Package Price
+  static async distributeReferralBonus(sponsorId: string, newUserId: string, packagePrice: number) {
     const sponsor = await User.findById(sponsorId);
     if (!sponsor) return;
 
-    const bonusAmount = 10.00;
+    // Default to 10% if not in config
+    const bonusAmount = packagePrice * 0.10;
 
     // Credit Wallet
     let wallet = await Wallet.findOne({ userId: sponsor._id });

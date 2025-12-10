@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
-import { useRegisterMutation } from '../store/api';
+import { useRegisterMutation, useGetPackagesQuery } from '../store/api';
 import { useNavigate, Link } from 'react-router-dom';
+import { CheckCircle, Package } from 'lucide-react';
 
 const Register = () => {
-  const [formData, setFormData] = useState({ username: '', email: '', password: '', sponsorUsername: '' });
+  const [formData, setFormData] = useState({ username: '', email: '', password: '', sponsorUsername: '', packageName: '' });
   const [register, { isLoading, error }] = useRegisterMutation();
+  const { data: packages = [], isLoading: isLoadingPackages } = useGetPackagesQuery(false); // false = only active
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.packageName) {
+      alert("Please select a package");
+      return;
+    }
     try {
       await register(formData).unwrap();
       navigate('/login');
@@ -25,34 +31,77 @@ const Register = () => {
         <div className="absolute top-[40%] -right-[10%] w-[40%] h-[60%] bg-purple-500/10 rounded-full blur-[120px]"></div>
       </div>
 
-      <div className="md:flex w-full max-w-5xl mx-auto z-10 my-auto p-4">
-        {/* Left Side: Brand Area */}
-        <div className="hidden md:flex flex-col justify-center w-1/2 p-10 text-white">
-          <div className="mb-4">
+      <div className="w-full max-w-7xl mx-auto z-10 my-auto p-4 grid md:grid-cols-2 gap-12 items-center">
+        {/* Left Side: Brand Area & Packages */}
+        <div className="text-white space-y-8">
+          <div>
             <span className="bg-teal-500/20 text-teal-300 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase border border-teal-500/30">
               Join the Network
             </span>
+            <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight mt-4 leading-tight">
+              Select Your <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-purple-400">
+                Entry Level
+              </span>
+            </h1>
           </div>
-          <h1 className="text-6xl font-extrabold tracking-tight mb-4 leading-tight">
-            Start Your <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-purple-400">
-              Journey Today
-            </span>
-          </h1>
-          <p className="text-slate-400 text-lg max-w-sm leading-relaxed">
-            Create an account to start building your team, earning commissions, and tracking your success.
-          </p>
+
+          {/* Package Selection */}
+          <div className="grid gap-4">
+            {isLoadingPackages ? (
+              <div className="text-gray-400">Loading packages...</div>
+            ) : packages.map((pkg: any) => (
+              <div
+                key={pkg._id}
+                onClick={() => setFormData({ ...formData, packageName: pkg.name })}
+                className={`relative p-6 rounded-2xl border cursor-pointer transition-all duration-300 group
+                        ${formData.packageName === pkg.name
+                    ? 'bg-white/10 border-teal-500 lg:scale-105 shadow-xl shadow-teal-500/20'
+                    : 'bg-white/5 border-white/10 hover:border-white/30 hover:bg-white/10'
+                  }
+                    `}
+              >
+                {formData.packageName === pkg.name && (
+                  <div className="absolute -top-3 -right-3 bg-teal-500 text-white p-1 rounded-full shadow-lg">
+                    <CheckCircle size={20} fill="currentColor" className="text-teal-500 bg-white rounded-full" />
+                  </div>
+                )}
+                {pkg.badge && (
+                  <span className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 px-2 py-1 rounded-md border border-purple-500/30">
+                    {pkg.badge}
+                  </span>
+                )}
+
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-xl font-bold text-white group-hover:text-teal-300 transition-colors">{pkg.name}</h3>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-teal-400">${pkg.price}</div>
+                    <div className="text-xs text-slate-400 font-mono">{pkg.pv} PV</div>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-400 mb-4 line-clamp-2">{pkg.description}</p>
+                {pkg.features && pkg.features.length > 0 && (
+                  <ul className="space-y-1">
+                    {pkg.features.slice(0, 3).map((feat: string, i: number) => (
+                      <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-teal-500"></div> {feat}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Right Side: Register Card */}
-        <div className="w-full md:w-1/2 flex items-center justify-center">
+        {/* Right Side: Register Form */}
+        <div className="w-full flex justify-center">
           <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl relative">
-            {/* Glow Effect */}
             <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-teal-500 rounded-3xl blur opacity-20 -z-10"></div>
 
-            <div className="mb-6 text-center">
-              <h2 className="text-3xl font-bold text-white mb-2">Create Account</h2>
-              <p className="text-slate-400 text-sm">Join our growing community</p>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-white mb-1">Create Account</h2>
+              <p className="text-slate-400 text-sm">Finishing steps for {formData.packageName ? <span className="text-teal-400 font-bold">{formData.packageName}</span> : 'new member'}</p>
             </div>
 
             {error && (
@@ -66,6 +115,7 @@ const Register = () => {
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-1">Username</label>
                 <input
                   type="text"
+                  required
                   className="w-full bg-slate-900/50 border border-slate-700 text-white px-5 py-3 rounded-xl focus:outline-none focus:border-teal-500 transition-all placeholder:text-slate-600"
                   placeholder="Choose a username"
                   value={formData.username}
@@ -77,6 +127,7 @@ const Register = () => {
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-1">Email Address</label>
                 <input
                   type="email"
+                  required
                   className="w-full bg-slate-900/50 border border-slate-700 text-white px-5 py-3 rounded-xl focus:outline-none focus:border-teal-500 transition-all placeholder:text-slate-600"
                   placeholder="john@example.com"
                   value={formData.email}
@@ -88,6 +139,7 @@ const Register = () => {
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-1">Password</label>
                 <input
                   type="password"
+                  required
                   className="w-full bg-slate-900/50 border border-slate-700 text-white px-5 py-3 rounded-xl focus:outline-none focus:border-teal-500 transition-all placeholder:text-slate-600"
                   placeholder="Create a password"
                   value={formData.password}
@@ -111,7 +163,7 @@ const Register = () => {
                 disabled={isLoading}
                 className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-teal-500/20 transform transition-all active:scale-[0.98] disabled:opacity-50 mt-2"
               >
-                {isLoading ? 'Creating Account...' : 'Register Now'}
+                {isLoading ? 'Creating Account...' : `Join with ${formData.packageName || 'Selection'}`}
               </button>
             </form>
 
