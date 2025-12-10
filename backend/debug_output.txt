@@ -1,0 +1,99 @@
+Connected to DB
+--- SYSTEM CONFIG ---
+{
+  "_id": "6939667acac8e05ea3028f9e",
+  "commissionType": "FIXED_PAIR",
+  "pairRatio": "1:1",
+  "commissionValue": 10,
+  "pairUnit": 100,
+  "dailyCapAmount": 500,
+  "flushCarryForward": false,
+  "referralBonusPercentage": 10,
+  "matchingBonusGenerations": [
+    10,
+    5,
+    2
+  ],
+  "defaultSponsor": "root",
+  "holdingTankMode": true,
+  "createdAt": "2025-12-10T12:24:26.241Z",
+  "updatedAt": "2025-12-10T12:24:26.241Z",
+  "__v": 0
+}
+
+--- ADMIN WALLET ---
+Balance: 76
+Transactions: [
+  {
+    "type": "COMMISSION",
+    "amount": 10,
+    "date": "2025-12-10T10:06:49.807Z",
+    "description": "Referral Bonus for new user 69394639846551654430ef4a",
+    "status": "COMPLETED",
+    "_id": "69394639846551654430ef55"
+  },
+  {
+    "type": "COMMISSION",
+    "amount": 15,
+    "date": "2025-12-10T10:07:09.802Z",
+    "description": "Referral Bonus for new user 6939464d846551654430ef74",
+    "status": "COMPLETED",
+    "_id": "6939464d846551654430ef80"
+  },
+  {
+    "type": "COMMISSION",
+    "amount": 10,
+    "date": "2025-12-10T10:07:09.834Z",
+    "description": "Matched 1 pairs (1:1).",
+    "status": "COMPLETED",
+    "_id": "6939464d846551654430ef8f"
+  },
+  {
+    "type": "COMMISSION",
+    "amount": 10,
+    "date": "2025-12-10T10:07:32.743Z",
+    "description": "Referral Bonus for new user 69394664846551654430efb7",
+    "status": "COMPLETED",
+    "_id": "69394664846551654430efca"
+  },
+  {
+    "type": "COMMISSION",
+    "amount": 10,
+    "date": "2025-12-10T12:14:06.163Z",
+    "description": "Referral Bonus for new user 6939640ecd4823feffeffbd4",
+    "status": "COMPLETED",
+    "_id": "6939640ecd4823feffeffbe9"
+  },
+  {
+    "type": "COMMISSION",
+    "amount": 1,
+    "date": "2025-12-10T12:14:06.223Z",
+    "description": "Matching bonus (10%) from a1's binary income",
+    "status": "COMPLETED",
+    "_id": "6939640ecd4823feffeffc07"
+  },
+  {
+    "type": "COMMISSION",
+    "amount": 10,
+    "date": "2025-12-10T12:37:36.262Z",
+    "description": "Referral Bonus for new user 693967abcac8e05ea3028faa",
+    "status": "COMPLETED",
+    "_id": "69396990123051063d0e956d"
+  },
+  {
+    "type": "COMMISSION",
+    "amount": 10,
+    "date": "2025-12-10T12:37:36.294Z",
+    "description": "Matched 1 pairs (1:1).",
+    "status": "COMPLETED",
+    "_id": "69396990123051063d0e958a"
+  }
+]
+
+--- USERS ---
+User: admin | Sponsor: undefined | PV: L100/R50 | Pkg: None
+User: a1 | Sponsor: 69391dfa8b77ec9bbc5aba93 | PV: L0/R0 | Pkg: Starter ($100, 100PV)
+User: a2 | Sponsor: 69391dfa8b77ec9bbc5aba93 | PV: L0/R100 | Pkg: Mid ($150, 150PV)
+User: a3 | Sponsor: 69391dfa8b77ec9bbc5aba93 | PV: L0/R0 | Pkg: Starter ($100, 100PV)
+User: a4 | Sponsor: 69391dfa8b77ec9bbc5aba93 | PV: L0/R0 | Pkg: Starter ($100, 100PV)
+User: a11 | Sponsor: 69391dfa8b77ec9bbc5aba93 | PV: L0/R0 | Pkg: Starter ($100, 100PV)

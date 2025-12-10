@@ -112,20 +112,20 @@ const AdminDashboard = () => {
 
       {/* System Activities Log Visualization */}
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 flex flex-col shadow-sm">
-        <div className="p-6 border-b border-gray-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Activity size={24} className="text-teal-600 dark:text-teal-400" />
+        <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Activity size={20} className="text-teal-600 dark:text-teal-400" />
             Recent System Activities
           </h2>
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <input
               type="text"
               placeholder="Search logs..."
-              className="px-3 py-1.5 rounded border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-teal-500"
+              className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-teal-500"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <button onClick={handleExportCSV} className="text-sm text-teal-600 dark:text-teal-400 hover:underline">
+            <button onClick={handleExportCSV} className="text-xs font-medium text-teal-600 dark:text-teal-400 hover:underline">
               Export CSV
             </button>
           </div>
@@ -149,33 +149,33 @@ const AdminDashboard = () => {
             <table className="w-full text-left text-gray-700 dark:text-slate-300">
               <thead className="bg-gray-50 dark:bg-slate-900/50 text-gray-500 dark:text-slate-400 uppercase text-xs font-semibold backdrop-blur-sm">
                 <tr>
-                  <th className={getHeaderClass('type')} onClick={() => handleSort('type')}>
+                  <th className={`px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors select-none ${sortBy === 'type' ? 'text-teal-600 dark:text-teal-400 font-bold bg-gray-50 dark:bg-slate-700/30' : ''}`} onClick={() => handleSort('type')}>
                     <div className="flex items-center gap-1">Type {renderSortIcon('type')}</div>
                   </th>
-                  <th className={getHeaderClass('action')} onClick={() => handleSort('action')}>
+                  <th className={`px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors select-none ${sortBy === 'action' ? 'text-teal-600 dark:text-teal-400 font-bold bg-gray-50 dark:bg-slate-700/30' : ''}`} onClick={() => handleSort('action')}>
                     <div className="flex items-center gap-1">Action {renderSortIcon('action')}</div>
                   </th>
-                  <th className={getHeaderClass('details')} onClick={() => handleSort('details')}>
+                  <th className={`px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors select-none ${sortBy === 'details' ? 'text-teal-600 dark:text-teal-400 font-bold bg-gray-50 dark:bg-slate-700/30' : ''}`} onClick={() => handleSort('details')}>
                     <div className="flex items-center gap-1">Details {renderSortIcon('details')}</div>
                   </th>
-                  <th className={`text-right ${getHeaderClass('timestamp')}`} onClick={() => handleSort('timestamp')}>
+                  <th className={`text-right px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors select-none ${sortBy === 'timestamp' ? 'text-teal-600 dark:text-teal-400 font-bold bg-gray-50 dark:bg-slate-700/30' : ''}`} onClick={() => handleSort('timestamp')}>
                     <div className="flex items-center justify-end gap-1">Time {renderSortIcon('timestamp')}</div>
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-slate-700/50">
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
                 {logs.map((log: any) => (
                   <tr key={log._id} className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-3">
                       {getLogIcon(log.type)}
                     </td>
-                    <td className="px-6 py-4 font-mono text-sm font-medium text-gray-900 dark:text-white">
+                    <td className="px-6 py-3 font-mono text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wide">
                       {log.action}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-slate-400">
+                    <td className="px-6 py-3 text-sm text-gray-600 dark:text-slate-400">
                       {log.details}
                     </td>
-                    <td className="px-6 py-4 text-right text-xs text-gray-500 dark:text-slate-500 font-mono">
+                    <td className="px-6 py-3 text-right text-xs text-gray-500 dark:text-slate-500 font-mono">
                       {new Date(log.timestamp).toLocaleString()}
                     </td>
                   </tr>
@@ -186,21 +186,21 @@ const AdminDashboard = () => {
         </div>
 
         {/* Pagination Controls */}
-        <div className="p-4 border-t border-gray-200 dark:border-slate-700 flex justify-between items-center">
+        <div className="p-3 border-t border-gray-200 dark:border-slate-700 flex justify-between items-center bg-gray-50/50 dark:bg-slate-800/50">
           <button
             disabled={page === 1}
             onClick={() => setPage(p => Math.max(1, p - 1))}
-            className="px-3 py-1 rounded bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 disabled:opacity-50 text-sm"
+            className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-300 disabled:opacity-50 text-xs font-medium hover:bg-gray-50 transition"
           >
             Previous
           </button>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
+          <span className="text-xs text-gray-500 dark:text-gray-400">
             Page {page} of {totalPages}
           </span>
           <button
             disabled={page >= totalPages}
             onClick={() => setPage(p => p + 1)}
-            className="px-3 py-1 rounded bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 disabled:opacity-50 text-sm"
+            className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-300 disabled:opacity-50 text-xs font-medium hover:bg-gray-50 transition"
           >
             Next
           </button>

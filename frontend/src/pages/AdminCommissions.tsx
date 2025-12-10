@@ -53,16 +53,16 @@ const AdminCommissions = () => {
                         <input
                             type="text"
                             placeholder="Search user, type..."
-                            className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                            className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500 outline-none"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
                     <button
                         onClick={handleExportCSV}
-                        className="bg-teal-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-teal-500 transition flex items-center gap-2 shadow-lg shadow-teal-500/20"
+                        className="bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 text-teal-600 dark:text-teal-400 border border-gray-200 dark:border-slate-600 px-3 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm"
                     >
-                        <Download size={18} /> <span className="hidden sm:inline">Export CSV</span>
+                        <Download size={16} /> <span className="hidden sm:inline">Export CSV</span>
                     </button>
                 </div>
             </div>
@@ -71,45 +71,45 @@ const AdminCommissions = () => {
                 <div className="overflow-x-auto flex-1">
                     {/* Desktop Table View */}
                     <table className="w-full text-left text-gray-700 dark:text-slate-300 hidden md:table">
-                        <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-slate-400 uppercase text-xs font-semibold">
+                        <thead className="bg-gray-50 dark:bg-slate-900/50 text-gray-500 dark:text-slate-400 uppercase text-xs font-semibold">
                             <tr>
-                                <th className="px-6 py-4 cursor-pointer hover:text-teal-500" onClick={() => handleSort('date')}>
+                                <th className="px-6 py-3 cursor-pointer hover:text-teal-500" onClick={() => handleSort('date')}>
                                     <div className="flex items-center gap-1">Date <ArrowUpDown size={12} /></div>
                                 </th>
-                                <th className="px-6 py-4 cursor-pointer hover:text-teal-500" onClick={() => handleSort('username')}>
+                                <th className="px-6 py-3 cursor-pointer hover:text-teal-500" onClick={() => handleSort('username')}>
                                     <div className="flex items-center gap-1">User <ArrowUpDown size={12} /></div>
                                 </th>
-                                <th className="px-6 py-4 cursor-pointer hover:text-teal-500" onClick={() => handleSort('type')}>
+                                <th className="px-6 py-3 cursor-pointer hover:text-teal-500" onClick={() => handleSort('type')}>
                                     <div className="flex items-center gap-1">Type <ArrowUpDown size={12} /></div>
                                 </th>
-                                <th className="px-6 py-4 cursor-pointer hover:text-teal-500" onClick={() => handleSort('amount')}>
+                                <th className="px-6 py-3 cursor-pointer hover:text-teal-500" onClick={() => handleSort('amount')}>
                                     <div className="flex items-center gap-1">Amount <ArrowUpDown size={12} /></div>
                                 </th>
-                                <th className="px-6 py-4">Details</th>
-                                <th className="px-6 py-4">Status</th>
+                                <th className="px-6 py-3">Details</th>
+                                <th className="px-6 py-3">Status</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
+                        <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
                             {commissions && commissions.length > 0 ? (
                                 commissions.map((item: any, idx: number) => (
-                                    <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-slate-750 transition-colors">
-                                        <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
+                                    <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
+                                        <td className="px-6 py-3 text-sm text-gray-600 dark:text-gray-300">
                                             {new Date(item.date).toLocaleDateString()} <span className="text-gray-400 dark:text-slate-500 text-xs">{new Date(item.date).toLocaleTimeString()}</span>
                                         </td>
-                                        <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{item.username}</td>
-                                        <td className="px-6 py-4">
-                                            <span className="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 px-2 py-1 rounded text-xs font-bold border border-blue-100 dark:border-blue-500/20">
+                                        <td className="px-6 py-3 font-medium text-gray-900 dark:text-white">{item.username}</td>
+                                        <td className="px-6 py-3">
+                                            <span className="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-blue-100 dark:border-blue-500/20">
                                                 {item.type.replace('_', ' ')}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-green-600 dark:text-green-400 font-mono font-bold">
+                                        <td className="px-6 py-3 text-green-600 dark:text-green-400 font-mono font-bold text-sm">
                                             ${item.amount.toFixed(2)}
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-slate-400 max-w-xs truncate" title={item.details}>
+                                        <td className="px-6 py-3 text-sm text-gray-500 dark:text-slate-400 max-w-xs truncate" title={item.details}>
                                             {item.details}
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className="text-green-600 bg-green-50 dark:text-green-500 dark:bg-green-500/10 px-2 py-1 rounded text-xs font-bold border border-green-100 dark:border-green-500/20">
+                                        <td className="px-6 py-3">
+                                            <span className="text-green-600 bg-green-50 dark:text-green-500 dark:bg-green-500/10 px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-green-100 dark:border-green-500/20">
                                                 Paid
                                             </span>
                                         </td>
@@ -126,42 +126,42 @@ const AdminCommissions = () => {
                     </table>
 
                     {/* Mobile Card View */}
-                    <div className="md:hidden divide-y divide-gray-200 dark:divide-slate-700">
+                    <div className="md:hidden divide-y divide-gray-100 dark:divide-slate-700/50">
                         {commissions && commissions.length > 0 ? (
                             commissions.map((item: any, idx: number) => (
-                                <div key={idx} className="p-4 space-y-3">
+                                <div key={idx} className="p-4 space-y-2">
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <div className="text-sm text-gray-500 dark:text-slate-400">
+                                            <div className="text-xs text-gray-400 dark:text-slate-500">
                                                 {new Date(item.date).toLocaleDateString()}
                                             </div>
-                                            <div className="font-bold text-gray-900 dark:text-white text-lg">
+                                            <div className="font-bold text-gray-900 dark:text-white text-sm">
                                                 {item.username}
                                             </div>
                                         </div>
-                                        <div className="text-green-600 dark:text-green-400 font-mono font-bold text-lg">
+                                        <div className="text-green-600 dark:text-green-400 font-mono font-bold text-sm">
                                             ${item.amount.toFixed(2)}
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                        <span className="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 px-2 py-1 rounded text-xs font-bold border border-blue-100 dark:border-blue-500/20">
+                                        <span className="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-blue-100 dark:border-blue-500/20">
                                             {item.type.replace('_', ' ')}
                                         </span>
-                                        <span className="text-green-600 bg-green-50 dark:text-green-500 dark:bg-green-500/10 px-2 py-1 rounded text-xs font-bold border border-green-100 dark:border-green-500/20">
+                                        <span className="text-green-600 bg-green-50 dark:text-green-500 dark:bg-green-500/10 px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-green-100 dark:border-green-500/20">
                                             Paid
                                         </span>
                                     </div>
 
                                     {item.details && (
-                                        <div className="text-sm text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-700/50 p-2 rounded">
+                                        <div className="text-xs text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-700/30 p-2 rounded border border-gray-100 dark:border-slate-700/50">
                                             {item.details}
                                         </div>
                                     )}
                                 </div>
                             ))
                         ) : (
-                            <div className="p-8 text-center text-gray-500 dark:text-slate-500">
+                            <div className="p-8 text-center text-gray-500 dark:text-slate-500 text-sm">
                                 No commission history found.
                             </div>
                         )}
@@ -169,23 +169,23 @@ const AdminCommissions = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="p-4 border-t border-gray-200 dark:border-slate-700 flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
+                <div className="p-3 border-t border-gray-200 dark:border-slate-700 flex justify-between items-center bg-gray-50/50 dark:bg-slate-800/50">
                     <button
                         disabled={page === 1}
                         onClick={() => setPage(p => Math.max(1, p - 1))}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-slate-600 transition"
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-slate-600 transition"
                     >
-                        <ChevronLeft size={16} /> Previous
+                        <ChevronLeft size={14} /> Prev
                     </button>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Page <span className="font-bold text-gray-900 dark:text-white">{page}</span> of {totalPages}
+                    <span className="text-xs text-gray-500 dark:text-slate-400">
+                        Page {page}/{totalPages}
                     </span>
                     <button
                         disabled={page >= totalPages}
                         onClick={() => setPage(p => p + 1)}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-slate-600 transition"
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-slate-600 transition"
                     >
-                        Next <ChevronRight size={16} />
+                        Next <ChevronRight size={14} />
                     </button>
                 </div>
             </div>
