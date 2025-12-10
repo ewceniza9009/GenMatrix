@@ -17,8 +17,9 @@ export const getHoldingTank = async (req: Request, res: Response) => {
 
 export const placeUserManually = async (req: Request, res: Response) => {
     try {
-        const { userId, targetParentId, position } = req.body; // userId to place, where to put them
+        const { userId, targetParentId, position } = req.body;
         const sponsorId = (req as any).user._id;
+        const cleanParentId = targetParentId && typeof targetParentId === 'string' ? targetParentId.trim() : targetParentId;
 
         const userToPlace = await User.findById(userId).populate('enrollmentPackage');
         if (!userToPlace || userToPlace.isPlaced) {
@@ -30,8 +31,15 @@ export const placeUserManually = async (req: Request, res: Response) => {
             return res.status(403).json({ message: 'Not authorized to place this user' });
         }
 
-        const parent = await User.findById(targetParentId);
-        if (!parent) return res.status(404).json({ message: 'Target parent not found' });
+        // Resolve Target Parent (by ID or Username)
+        let parent;
+        if (cleanParentId.match(/^[0-9a-fA-F]{24}$/)) {
+            parent = await User.findById(cleanParentId);
+        } else {
+            parent = await User.findOne({ username: cleanParentId });
+        }
+
+        if (!parent) return res.status(404).json({ message: `Target parent '${cleanParentId}' not found` });
 
         // Check if spot is empty
         if (position === 'left' && parent.leftChildId) return res.status(400).json({ message: 'Left spot occupied' });
@@ -46,7 +54,7 @@ export const placeUserManually = async (req: Request, res: Response) => {
         else parent.rightChildId = userToPlace._id as any;
 
         await parent.save();
-        await userToPlace.save(); // pre-save hook handles path/level updates
+        await userToPlace.save();
 
         const pkg: any = userToPlace.enrollmentPackage;
 
@@ -60,8 +68,8 @@ export const placeUserManually = async (req: Request, res: Response) => {
 
         res.json({ message: 'User placed successfully' });
 
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Placement failed' });
+    } catch (error: any) {
+        console.error('Placement Error:', error);
+        res.status(500).json({ message: 'Placement failed: ' + (error.message || 'Unknown error') });
     }
 };

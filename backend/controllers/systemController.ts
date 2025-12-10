@@ -12,14 +12,25 @@ export const getConfig = async (req: Request, res: Response) => {
 
 export const updateConfig = async (req: Request, res: Response) => {
     try {
-        const { pairRatio, commissionValue, dailyCapAmount, pairUnit } = req.body;
+        const {
+            pairRatio,
+            commissionValue,
+            dailyCapAmount,
+            pairUnit,
+            referralBonusPercentage,
+            matchingBonusGenerations,
+            holdingTankMode
+        } = req.body;
 
         // Create new revision for history tracking
         const config = await SystemConfig.create({
             pairRatio,
             commissionValue,
             dailyCapAmount,
-            pairUnit
+            pairUnit,
+            referralBonusPercentage,
+            matchingBonusGenerations,
+            holdingTankMode: holdingTankMode ?? true // Default to true if missing
         });
 
         res.json(config);

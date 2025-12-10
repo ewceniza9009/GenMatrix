@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { useGetConfigQuery, useUpdateConfigMutation, useUpdateProfileMutation } from '../store/api';
-import { CheckCircle, Sliders, Shield, User, Network, DollarSign, Settings as SettingsIcon, Save } from 'lucide-react';
+import { Sliders, Shield, Network, Settings as SettingsIcon, Save } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Settings = () => {
@@ -19,7 +19,8 @@ const Settings = () => {
     dailyCapAmount: 500,
     pairUnit: 100,
     referralBonusPercentage: 10,
-    matchingBonusGenerations: '10, 5, 2'
+    matchingBonusGenerations: '10, 5, 2',
+    holdingTankMode: true
   });
 
   useEffect(() => {
@@ -30,7 +31,8 @@ const Settings = () => {
         dailyCapAmount: configData.dailyCapAmount,
         pairUnit: configData.pairUnit,
         referralBonusPercentage: configData.referralBonusPercentage || 10,
-        matchingBonusGenerations: configData.matchingBonusGenerations ? configData.matchingBonusGenerations.join(', ') : '10, 5, 2'
+        matchingBonusGenerations: configData.matchingBonusGenerations ? configData.matchingBonusGenerations.join(', ') : '10, 5, 2',
+        holdingTankMode: configData.holdingTankMode ?? true
       });
     }
   }, [configData]);
@@ -163,8 +165,28 @@ const Settings = () => {
               <form onSubmit={handleSaveAdmin} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 relative z-10">
 
                 {/* Binary Settings Group */}
-                <div className="md:col-span-2">
-                  <h3 className="text-sm font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider mb-4 border-b border-gray-100 dark:border-slate-700/50 pb-2">Binary Engine</h3>
+                <div className="md:col-span-2 space-y-2">
+                  <h3 className="text-sm font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-700/50 pb-2">Binary Engine</h3>
+
+                  <div className="bg-gray-50 dark:bg-slate-900/50 p-3 rounded-xl border border-gray-100 dark:border-slate-700 flex items-center justify-between">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white">Holding Tank Mode</label>
+                      <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                        If enabled, new signups go to the Holding Tank for manual placement. <br />
+                        If disabled, they are automatically placed based on spillover preference.
+                      </p>
+                    </div>
+                    <div className="relative inline-block w-12 h-6 transition duration-200 ease-in-out rounded-full cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="absolute w-full h-full opacity-0 cursor-pointer z-10 left-0 top-0"
+                        checked={adminForm.holdingTankMode}
+                        onChange={(e) => setAdminForm({ ...adminForm, holdingTankMode: e.target.checked })}
+                      />
+                      <div className={`w-11 h-6 rounded-full transition-colors duration-200 ease-in-out ${adminForm.holdingTankMode ? 'bg-teal-500' : 'bg-gray-300 dark:bg-slate-600'}`}></div>
+                      <div className={`absolute left-0.5 top-0.5 bg-white w-5 h-5 rounded-full shadow transform transition-transform duration-200 ease-in-out ${adminForm.holdingTankMode ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                    </div>
+                  </div>
                 </div>
 
                 <div>

@@ -21,17 +21,18 @@ const seed = async () => {
     await Commission.deleteMany({});
     await Wallet.deleteMany({});
     await mongoose.connection.collection('packages').deleteMany({}); // Clear packages
+    await mongoose.connection.collection('systemconfigs').deleteMany({}); // Clear config to reset defaults
     console.log('Cleared DB');
 
     // 0. Seed Packages
     const starterPkg = await new Package({
-        name: 'Starter',
-        price: 100,
-        pv: 100,
-        description: 'Basic entry package',
-        bonuses: [
-            { type: 'Direct', value: 10 }
-        ]
+      name: 'Starter',
+      price: 100,
+      pv: 100,
+      description: 'Basic entry package',
+      bonuses: [
+        { type: 'Direct', value: 10 }
+      ]
     }).save();
     console.log('Created Starter Package (100 PV)');
 
@@ -60,11 +61,11 @@ const seed = async () => {
       spilloverPreference: 'weaker_leg'
     });
     await root.save();
-    
+
     // Seed wallet for visual
     await new Wallet({ userId: root._id, balance: 5000 }).save();
     await new Commission({ userId: root._id, totalEarned: 12000 }).save();
-    
+
     console.log('Created Root Distributor');
 
     // 3. Create Left/Right Leaders
@@ -105,11 +106,11 @@ const seed = async () => {
           rank: u.rank
         });
         await spilloverService.placeUser(newUser, sponsor.id);
-        
+
         // Add fake PV for commission testing
         sponsor.currentLeftPV += 150;
         await sponsor.save();
-        
+
         console.log(`Placed ${u.name} under ${u.sponsor}`);
       }
     }

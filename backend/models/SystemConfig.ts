@@ -36,7 +36,7 @@ const systemConfigSchema = new Schema<ISystemConfig>({
     referralBonusPercentage: { type: Number, default: 10 },
     matchingBonusGenerations: { type: [Number], default: [10, 5, 2] },
     defaultSponsor: { type: String, default: 'root' },
-    holdingTankMode: { type: Boolean, default: false }
+    holdingTankMode: { type: Boolean, default: true }
 }, { timestamps: true });
 
 // Singleton helper

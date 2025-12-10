@@ -125,10 +125,33 @@ const Network = () => {
         </div>
       </div>
 
-      {/* Holding Tank Area */}
+      {/* Holding Tank Modal Overlay */}
       {showHoldingTank && (
-        <div className="shrink-0 animate-in slide-in-from-top duration-300">
-          <HoldingTank />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          {/* Modal Container */}
+          <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <span className="bg-teal-100 dark:bg-teal-500/20 text-teal-700 dark:text-teal-400 p-1.5 rounded-lg">
+                  <List size={18} />
+                </span>
+                Holding Tank
+              </h3>
+              <button
+                onClick={() => setShowHoldingTank(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+              >
+                <span className="sr-only">Close</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="max-h-[80vh] overflow-y-auto">
+              <HoldingTank />
+            </div>
+          </div>
         </div>
       )}
 
