@@ -144,19 +144,19 @@ const Settings = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden border border-slate-700"
+              className="bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-800 rounded-3xl p-8 text-gray-900 dark:text-white shadow-xl dark:shadow-2xl relative overflow-hidden border border-gray-100 dark:border-slate-700"
             >
-              {/* Decorative Background */}
-              <div className="absolute -top-24 -right-24 w-64 h-64 bg-teal-500/20 rounded-full blur-3xl"></div>
+              {/* Decorative Background - Dark Mode Only */}
+              <div className="hidden dark:block absolute -top-24 -right-24 w-64 h-64 bg-teal-500/20 rounded-full blur-3xl"></div>
               <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500 to-purple-500"></div>
 
               <div className="flex items-center gap-3 mb-8 relative z-10">
-                <div className="bg-teal-500/20 p-2 rounded-lg">
-                  <Sliders className="text-teal-400" size={24} />
+                <div className="bg-teal-50 dark:bg-teal-500/20 p-2 rounded-lg">
+                  <Sliders className="text-teal-600 dark:text-teal-400" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold">System Compensation Rules</h2>
-                  <p className="text-slate-400 text-sm">Control the financial engine of the entire network.</p>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">System Compensation Rules</h2>
+                  <p className="text-gray-500 dark:text-slate-400 text-sm">Control the financial engine of the entire network.</p>
                 </div>
               </div>
 
@@ -164,15 +164,15 @@ const Settings = () => {
 
                 {/* Binary Settings Group */}
                 <div className="md:col-span-2">
-                  <h3 className="text-sm font-bold text-teal-400 uppercase tracking-wider mb-4 border-b border-slate-700/50 pb-2">Binary Engine</h3>
+                  <h3 className="text-sm font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider mb-4 border-b border-gray-100 dark:border-slate-700/50 pb-2">Binary Engine</h3>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Binary Pair Ratio</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Binary Pair Ratio</label>
                   <select
                     value={adminForm.pairRatio}
                     onChange={(e) => setAdminForm({ ...adminForm, pairRatio: e.target.value })}
-                    className="w-full bg-slate-900/50 border border-slate-600 rounded-xl p-3 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-600 rounded-xl p-3 text-gray-900 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none"
                   >
                     <option value="1:1">1:1 (Balanced)</option>
                     <option value="1:2">1:2 (Power Leg)</option>
@@ -181,73 +181,73 @@ const Settings = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Pair Unit (PV)</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Pair Unit (PV)</label>
                   <div className="relative">
                     <input
                       type="number"
                       value={adminForm.pairUnit}
                       onChange={(e) => setAdminForm({ ...adminForm, pairUnit: Number(e.target.value) })}
-                      className="w-full bg-slate-900/50 border border-slate-600 rounded-xl p-3 pl-4 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none"
+                      className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-600 rounded-xl p-3 pl-4 text-gray-900 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none"
                     />
-                    <span className="absolute right-4 top-3 text-slate-500 text-xs">PV</span>
+                    <span className="absolute right-4 top-3 text-gray-400 dark:text-slate-500 text-xs">PV</span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Commission per Pair</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Commission per Pair</label>
                   <div className="relative">
-                    <span className="absolute left-4 top-3 text-slate-400">$</span>
+                    <span className="absolute left-4 top-3 text-gray-400 dark:text-slate-400">$</span>
                     <input
                       type="number"
                       value={adminForm.commissionValue}
                       onChange={(e) => setAdminForm({ ...adminForm, commissionValue: Number(e.target.value) })}
-                      className="w-full bg-slate-900/50 border border-slate-600 rounded-xl p-3 pl-8 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none font-mono"
+                      className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-600 rounded-xl p-3 pl-8 text-gray-900 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none font-mono"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Daily Cap Amount</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Daily Cap Amount</label>
                   <div className="relative">
-                    <span className="absolute left-4 top-3 text-slate-400">$</span>
+                    <span className="absolute left-4 top-3 text-gray-400 dark:text-slate-400">$</span>
                     <input
                       type="number"
                       value={adminForm.dailyCapAmount}
                       onChange={(e) => setAdminForm({ ...adminForm, dailyCapAmount: Number(e.target.value) })}
-                      className="w-full bg-slate-900/50 border border-slate-600 rounded-xl p-3 pl-8 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none font-mono"
+                      className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-600 rounded-xl p-3 pl-8 text-gray-900 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none font-mono"
                     />
                   </div>
                 </div>
 
                 {/* Bonus Settings Group */}
                 <div className="md:col-span-2 mt-2">
-                  <h3 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-4 border-b border-slate-700/50 pb-2">Bonus Configuration</h3>
+                  <h3 className="text-sm font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-4 border-b border-gray-100 dark:border-slate-700/50 pb-2">Bonus Configuration</h3>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Referral Bonus</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Referral Bonus</label>
                   <div className="relative">
                     <input
                       type="number"
                       value={adminForm.referralBonusPercentage}
                       onChange={(e) => setAdminForm({ ...adminForm, referralBonusPercentage: Number(e.target.value) })}
-                      className="w-full bg-slate-900/50 border border-slate-600 rounded-xl p-3 pr-8 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none font-bold text-lg"
+                      className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-600 rounded-xl p-3 pr-8 text-gray-900 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none font-bold text-lg"
                     />
-                    <span className="absolute right-4 top-4 text-slate-500">%</span>
+                    <span className="absolute right-4 top-4 text-gray-400 dark:text-slate-500">%</span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-2">Percentage of Package Price</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-500 mt-2">Percentage of Package Price</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Matching Bonus Generations</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Matching Bonus Generations</label>
                   <input
                     type="text"
                     placeholder="10, 5, 2"
                     value={adminForm.matchingBonusGenerations}
                     onChange={(e) => setAdminForm({ ...adminForm, matchingBonusGenerations: e.target.value })}
-                    className="w-full bg-slate-900/50 border border-slate-600 rounded-xl p-3 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none font-mono tracking-wider"
+                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-600 rounded-xl p-3 text-gray-900 dark:text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none font-mono tracking-wider"
                   />
-                  <p className="text-xs text-slate-500 mt-2">Separate percentages with commas (L1, L2, L3...)</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-500 mt-2">Separate percentages with commas (L1, L2, L3...)</p>
                 </div>
 
                 <div className="md:col-span-2 pt-6">
