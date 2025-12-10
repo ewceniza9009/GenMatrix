@@ -34,17 +34,22 @@ const Register = () => {
       <div className="w-full max-w-7xl mx-auto z-10 my-auto p-4 grid md:grid-cols-2 gap-12 items-center">
         {/* Left Side: Brand Area & Packages */}
         <div className="text-white space-y-8">
-          <div>
-            <span className="bg-teal-500/20 text-teal-300 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase border border-teal-500/30">
-              Join the Network
-            </span>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mt-4 leading-tight">
-              Select Your <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-purple-400">
-                Entry Level
-              </span>
-            </h1>
+          <div className="mb-8 flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-teal-500 to-teal-400 flex items-center justify-center shadow-lg shadow-teal-500/30 overflow-hidden">
+              <img src="/logo.png" alt="GenMatrix Logo" className="w-full h-full object-cover mix-blend-screen p-1.5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-white leading-none">Gen<span className="text-teal-400">Matrix</span></h1>
+              <p className="text-xs text-teal-200/80 font-medium tracking-widest uppercase mt-0.5">Registration</p>
+            </div>
           </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mt-4 leading-tight">
+            Select Your <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-purple-400">
+              Entry Level
+            </span>
+          </h1>
+
 
           {/* Package Selection */}
           <div className="grid gap-4">
@@ -178,6 +183,7 @@ const Register = () => {
           </div>
         </div>
       </div>
+
     </div>
   );
 };

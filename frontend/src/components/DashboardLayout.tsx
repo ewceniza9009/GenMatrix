@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
-  Network,
   Wallet,
   Settings,
   LogOut,
@@ -46,11 +45,11 @@ const DashboardLayout = () => {
         {/* Sidebar Header */}
         <div className="flex items-center justify-between p-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-teal-400 flex items-center justify-center shadow-lg shadow-teal-500/30">
-              <Network size={22} className="text-white" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-teal-400 flex items-center justify-center shadow-lg shadow-teal-500/30 overflow-hidden">
+              <img src="/src/assets/logo.png" alt="GenMatrix Logo" className="w-full h-full object-cover mix-blend-screen p-1" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white leading-none">Binary<span className="text-teal-500">MLM</span></h1>
+              <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white leading-none">Gen<span className="text-teal-500">Matrix</span></h1>
               <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-widest font-semibold mt-1">Enterprise</p>
             </div>
           </div>
@@ -136,7 +135,7 @@ const DashboardLayout = () => {
           <button onClick={() => setIsSidebarOpen(true)} className="text-gray-500 dark:text-slate-400">
             <Menu size={24} />
           </button>
-          <span className="font-bold text-gray-900 dark:text-white">BinaryMLM</span>
+          <span className="font-bold text-gray-900 dark:text-white">GenMatrix</span>
           <div className="w-8"></div>
         </header>
 

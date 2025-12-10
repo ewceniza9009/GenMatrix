@@ -32,10 +32,14 @@ const Login = () => {
       <div className="md:flex w-full max-w-5xl mx-auto z-10 my-auto p-4">
         {/* Left Side: Brand Area */}
         <div className="hidden md:flex flex-col justify-center w-1/2 p-10 text-white">
-          <div className="mb-4">
-            <span className="bg-teal-500/20 text-teal-300 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase border border-teal-500/30">
-              Network System 2.0
-            </span>
+          <div className="mb-8 flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-teal-500 to-teal-400 flex items-center justify-center shadow-lg shadow-teal-500/30 overflow-hidden">
+              <img src="/logo.png" alt="GenMatrix Logo" className="w-full h-full object-cover mix-blend-screen p-2" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-white leading-none">Gen<span className="text-teal-400">Matrix</span></h1>
+              <p className="text-sm text-teal-200/80 font-medium tracking-widest uppercase mt-1">Enterprise System</p>
+            </div>
           </div>
           <h1 className="text-6xl font-extrabold tracking-tight mb-4 leading-tight">
             Grow your <br />
