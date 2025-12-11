@@ -4,7 +4,20 @@ interface User {
   id: string;
   username: string;
   email: string;
+  enrollmentPackage?: string; // ID
+  isActive: boolean;
   role: 'admin' | 'distributor';
+  kycStatus?: 'pending' | 'approved' | 'rejected';
+  kycDocs?: string[];
+  kycComment?: string;
+  twoFactorSecret?: {
+    temp?: string;
+    secret?: string;
+    enabled: boolean;
+  };
+  currentLeftPV: number;
+  currentRightPV: number;
+  enrollmentDate: string;
   spilloverPreference?: string;
   enableHoldingTank?: 'system' | 'enabled' | 'disabled';
 }

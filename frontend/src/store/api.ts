@@ -13,7 +13,7 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ['User', 'Wallet', 'Tree', 'Packages', 'Tickets', 'Withdrawals'],
+  tagTypes: ['User', 'Wallet', 'Tree', 'Packages', 'Tickets', 'Withdrawals', 'Admin', 'SystemLogs'],
   endpoints: (builder) => ({
     getTree: builder.query({
       query: (rootId) => `network/tree${rootId ? `?rootId=${rootId}` : ''}`,
@@ -97,7 +97,7 @@ export const api = createApi({
     // Package Management
     getPackages: builder.query({
       query: (isAdmin) => `packages${isAdmin ? '?all=true' : ''}`,
-      providesTags: ['Package'],
+      providesTags: ['Packages'],
     }),
     createPackage: builder.mutation({
       query: (body) => ({
@@ -105,7 +105,7 @@ export const api = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['Package'],
+      invalidatesTags: ['Packages'],
     }),
     updatePackage: builder.mutation({
       query: ({ id, ...body }) => ({
@@ -113,14 +113,14 @@ export const api = createApi({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: ['Package'],
+      invalidatesTags: ['Packages'],
     }),
     deletePackage: builder.mutation({
       query: (id) => ({
         url: `packages/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Package'],
+      invalidatesTags: ['Packages'],
     }),
 
     // Holding Tank & Search
@@ -193,6 +193,50 @@ export const api = createApi({
       }),
       invalidatesTags: ['Withdrawals', 'Wallet'],
     }),
+
+    // Security (KYC & 2FA)
+    uploadKYC: builder.mutation({
+      query: (formData) => ({
+        url: 'security/kyc/upload',
+        method: 'POST',
+        body: formData,
+      }),
+      invalidatesTags: ['User'],
+    }),
+    getPendingKYC: builder.query<any[], void>({
+      query: () => 'security/kyc/pending',
+      providesTags: ['User'],
+    }),
+    updateKYCStatus: builder.mutation({
+      query: (body) => ({
+        url: 'security/kyc/status',
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['User'],
+    }),
+    generate2FA: builder.mutation({
+      query: () => ({
+        url: 'security/2fa/generate',
+        method: 'POST',
+      }),
+    }),
+    verify2FA: builder.mutation({
+      query: (body) => ({
+        url: 'security/2fa/verify',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['User'],
+    }),
+    disable2FA: builder.mutation({
+      query: (body) => ({
+        url: 'security/2fa/disable',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['User'],
+    }),
   }),
 });
 
@@ -224,5 +268,11 @@ export const {
   useReplyTicketMutation,
   useUpdateTicketStatusMutation,
   useGetPendingWithdrawalsQuery,
-  useProcessWithdrawalMutation
+  useProcessWithdrawalMutation,
+  useUploadKYCMutation,
+  useGetPendingKYCQuery,
+  useUpdateKYCStatusMutation,
+  useGenerate2FAMutation,
+  useVerify2FAMutation,
+  useDisable2FAMutation
 } = api;

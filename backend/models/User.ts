@@ -9,6 +9,13 @@ export interface IUser extends Document {
   isActive: boolean;
   role: 'admin' | 'distributor';
   kycStatus: 'pending' | 'approved' | 'rejected';
+  kycDocs?: string[];
+  kycComment?: string;
+  twoFactorSecret?: {
+    temp?: string;
+    secret?: string;
+    enabled: boolean;
+  };
   currentLeftPV: number;
   currentRightPV: number;
   enrollmentDate: Date;
@@ -41,6 +48,15 @@ const userSchema = new Schema<IUser>({
   isActive: { type: Boolean, default: true },
   role: { type: String, enum: ['admin', 'distributor'], default: 'distributor' },
   kycStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  kycDocs: [{ type: String }], // Array of file paths
+  kycComment: { type: String }, // Rejection reason
+
+  twoFactorSecret: {
+    temp: { type: String },
+    secret: { type: String },
+    enabled: { type: Boolean, default: false }
+  },
+
   isPlaced: { type: Boolean, default: true }, // Default true for legacy/immediate placement
   currentLeftPV: { type: Number, default: 0 },
   currentRightPV: { type: Number, default: 0 },

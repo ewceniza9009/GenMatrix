@@ -49,6 +49,7 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/wallet', walletRoutes);
 import supportRoutes from './routes/supportRoutes';
+import securityRoutes from './routes/securityRoutes';
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/network', genealogyRoutes);
@@ -57,3 +58,7 @@ app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/wallet', walletRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/support', supportRoutes);
+app.use('/api/v1/security', securityRoutes);
+
+// Serve uploads statically
+app.use('/uploads', express.static('uploads'));
