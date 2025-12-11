@@ -12,6 +12,8 @@ import genealogyRoutes from './routes/genealogyRoutes';
 import adminRoutes from './routes/adminRoutes';
 import packageRoutes from './routes/packageRoutes';
 import walletRoutes from './routes/walletRoutes';
+import productRoutes from './routes/productRoutes';
+import orderRoutes from './routes/orderRoutes';
 
 import { seedDatabase } from './services/seederService';
 
@@ -58,6 +60,8 @@ app.use('/api/v1/support', supportRoutes);
 app.use('/api/v1/security', securityRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/settings', settingsRoutes);
+app.use('/api/v1/shop', productRoutes);
+app.use('/api/v1/orders', orderRoutes);
 
 // Serve uploads statically
 app.use('/uploads', express.static('uploads'));

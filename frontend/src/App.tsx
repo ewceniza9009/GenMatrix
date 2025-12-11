@@ -15,6 +15,7 @@ import Register from './pages/Register';
 import WalletPage from './pages/Wallet';
 import Settings from './pages/Settings';
 import Network from './pages/Network';
+import ShopPage from './pages/ShopPage';
 import { useSelector } from 'react-redux';
 import { RootState } from './store';
 
@@ -43,6 +44,7 @@ function App() {
           <Route path="network" element={<Network />} />
           <Route path="enroll" element={<EnrollMember />} />
           <Route path="wallet" element={<WalletPage />} />
+          <Route path="shop" element={<ShopPage />} />
           <Route path="settings" element={<Settings />} />
           <Route path="support" element={<SupportPage />} />
 

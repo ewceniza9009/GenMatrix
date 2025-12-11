@@ -102,6 +102,9 @@ export const api = createApi({
       query: (isAdmin) => `packages${isAdmin ? '?all=true' : ''}`,
       providesTags: ['Packages'],
     }),
+    getShopStatus: builder.query({
+      query: () => 'shop/status',
+    }),
     createPackage: builder.mutation({
       query: (body) => ({
         url: 'packages',
@@ -281,6 +284,21 @@ export const api = createApi({
       }),
       invalidatesTags: ['Settings'],
     }),
+    // Shop & Orders
+    getShopProducts: builder.query({
+      query: () => 'shop/shop',
+    }),
+    createOrder: builder.mutation({
+      query: (body) => ({
+        url: 'orders',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Wallet', 'Tree'], // PV updates result in wallet/tree changes
+    }),
+    getMyOrders: builder.query({
+      query: () => 'orders/my-orders',
+    }),
   }),
 });
 
@@ -324,6 +342,10 @@ export const {
   useMarkNotificationReadMutation,
   useMarkAllNotificationsReadMutation,
   useSeedNotificationsMutation,
+  useGetShopStatusQuery,
+  useGetShopProductsQuery,
+  useCreateOrderMutation,
+  useGetMyOrdersQuery,
   useGetSettingsQuery,
   useUpdateSettingMutation
 } = api;

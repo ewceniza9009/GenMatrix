@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useGetSettingsQuery, useUpdateSettingMutation } from '../store/api';
-import { Settings, Shield, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Settings, Shield, CheckCircle2, AlertTriangle, ShoppingBag } from 'lucide-react';
 
 const AdminSettingsPage = () => {
     const { data: settings, isLoading } = useGetSettingsQuery();
@@ -8,11 +8,13 @@ const AdminSettingsPage = () => {
 
     // Local state for immediate UI feedback
     const [requireKYC, setRequireKYC] = useState(false);
+    const [enableShop, setEnableShop] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
     useEffect(() => {
         if (settings) {
             setRequireKYC(settings.withdrawals_require_kyc === true);
+            setEnableShop(settings.enableShop === true);
         }
     }, [settings]);
 
@@ -27,6 +29,20 @@ const AdminSettingsPage = () => {
         } catch (error) {
             console.error('Failed to update setting', error);
             setRequireKYC(!newValue); // Revert on error
+        }
+    };
+
+    const handleToggleShop = async () => {
+        const newValue = !enableShop;
+        setEnableShop(newValue); // Optimistic update
+
+        try {
+            await updateSetting({ key: 'enableShop', value: newValue }).unwrap();
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+        } catch (error) {
+            console.error('Failed to update setting', error);
+            setEnableShop(!newValue); // Revert on error
         }
     };
 
@@ -50,6 +66,38 @@ const AdminSettingsPage = () => {
 
             {/* Settings Sections */}
             <div className="grid gap-6">
+
+                {/* Commerce Features Card */}
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+                    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100 dark:border-slate-700">
+                        <ShoppingBag className="text-teal-500" size={24} />
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Commerce Features</h2>
+                    </div>
+
+                    <div className="space-y-6">
+                        {/* Setting Item: Enable Shop */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h3 className="font-medium text-gray-900 dark:text-white">Enable Product Shop</h3>
+                                <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+                                    Show the Shop link in the sidebar and allow users to purchase products.
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={handleToggleShop}
+                                disabled={isUpdating}
+                                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 ${enableShop ? 'bg-teal-500' : 'bg-gray-200 dark:bg-slate-700'
+                                    }`}
+                            >
+                                <span
+                                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${enableShop ? 'translate-x-6' : 'translate-x-1'
+                                        }`}
+                                />
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Security Settings Card */}
                 <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">

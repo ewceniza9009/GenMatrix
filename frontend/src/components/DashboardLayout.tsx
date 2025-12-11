@@ -17,12 +17,16 @@ import { RootState } from '../store';
 import { ThemeToggle } from './ThemeToggle';
 import NotificationCenter from './NotificationCenter';
 
+import { ShoppingBag } from 'lucide-react';
+import { useGetShopStatusQuery } from '../store/api';
+
 const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.auth.user);
+  const { data: shopStatus } = useGetShopStatusQuery({});
 
   const handleLogout = () => {
     dispatch(logout());
@@ -34,6 +38,7 @@ const DashboardLayout = () => {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: Users, label: 'My Network', path: '/network' },
     { icon: Wallet, label: 'Wallet', path: '/wallet' },
+    ...(shopStatus?.enableShop ? [{ icon: ShoppingBag, label: 'Shop', path: '/shop' }] : []),
     { icon: MessageSquare, label: 'Support', path: '/support' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
