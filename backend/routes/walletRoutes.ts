@@ -1,11 +1,14 @@
 import express from 'express';
-import * as walletController from '../controllers/walletController';
+import { getMyWallet, requestWithdrawal, getPendingWithdrawals, processWithdrawal } from '../controllers/walletController';
 import { protect, admin } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-router.get('/', protect, walletController.getMyWallet);
-router.post('/withdraw', protect, walletController.requestWithdrawal);
-router.post('/process', protect, admin, walletController.processWithdrawal);
+router.get('/', protect, getMyWallet);
+router.post('/withdraw', protect, requestWithdrawal);
+
+// Admin Routes
+router.get('/admin/withdrawals', protect, admin, getPendingWithdrawals);
+router.post('/admin/process-withdrawal', protect, admin, processWithdrawal);
 
 export default router;

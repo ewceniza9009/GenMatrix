@@ -13,7 +13,7 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ['User', 'Tree', 'Wallet', 'SystemLogs', 'Commissions', 'Package', 'Admin'],
+  tagTypes: ['User', 'Wallet', 'Tree', 'Packages', 'Tickets', 'Withdrawals'],
   endpoints: (builder) => ({
     getTree: builder.query({
       query: (rootId) => `network/tree${rootId ? `?rootId=${rootId}` : ''}`,
@@ -145,6 +145,54 @@ export const api = createApi({
     getGrowthAnalytics: builder.query({
       query: () => 'analytics/growth',
     }),
+
+    // Support
+    getTickets: builder.query<any[], void>({
+      query: () => 'support',
+      providesTags: ['Tickets'],
+    }),
+    getAllTickets: builder.query<any[], void>({
+      query: () => 'support/all',
+      providesTags: ['Tickets'],
+    }),
+    createTicket: builder.mutation({
+      query: (body) => ({
+        url: 'support',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Tickets'],
+    }),
+    replyTicket: builder.mutation({
+      query: ({ ticketId, message }) => ({
+        url: `support/${ticketId}/reply`,
+        method: 'POST',
+        body: { message },
+      }),
+      invalidatesTags: ['Tickets'],
+    }),
+    updateTicketStatus: builder.mutation({
+      query: ({ ticketId, status }) => ({
+        url: `support/${ticketId}/status`,
+        method: 'PUT',
+        body: { status },
+      }),
+      invalidatesTags: ['Tickets'],
+    }),
+
+    // Admin Withdrawals
+    getPendingWithdrawals: builder.query<any[], void>({
+      query: () => 'wallet/admin/withdrawals',
+      providesTags: ['Withdrawals'],
+    }),
+    processWithdrawal: builder.mutation({
+      query: (body) => ({
+        url: 'wallet/admin/process-withdrawal',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Withdrawals', 'Wallet'],
+    }),
   }),
 });
 
@@ -169,5 +217,12 @@ export const {
   useUpdatePackageMutation,
   useDeletePackageMutation,
   useGetEarningsAnalyticsQuery,
-  useGetGrowthAnalyticsQuery
+  useGetGrowthAnalyticsQuery,
+  useGetTicketsQuery,
+  useGetAllTicketsQuery,
+  useCreateTicketMutation,
+  useReplyTicketMutation,
+  useUpdateTicketStatusMutation,
+  useGetPendingWithdrawalsQuery,
+  useProcessWithdrawalMutation
 } = api;

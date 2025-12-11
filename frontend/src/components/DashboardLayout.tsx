@@ -7,7 +7,8 @@ import {
   LogOut,
   Menu,
   X,
-  Users
+  Users,
+  MessageSquare
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../store/authSlice';
@@ -33,6 +34,7 @@ const DashboardLayout = () => {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: Users, label: 'My Network', path: '/network' },
     { icon: Wallet, label: 'Wallet', path: '/wallet' },
+    { icon: MessageSquare, label: 'Support', path: '/support' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
@@ -93,6 +95,14 @@ const DashboardLayout = () => {
                 <button onClick={() => navigate('/admin/commissions')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-amber-100/70 hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                   Run Commissions
+                </button>
+                <button onClick={() => navigate('/admin/withdrawals')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-amber-100/70 hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                  Withdrawals
+                </button>
+                <button onClick={() => navigate('/admin/support')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-amber-100/70 hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                  Support Tickets
                 </button>
                 <button onClick={() => navigate('/admin/packages')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-amber-100/70 hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>

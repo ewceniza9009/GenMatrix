@@ -5,6 +5,9 @@ import DashboardHome from './pages/DashboardHome';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminCommissions from './pages/AdminCommissions';
 import AdminPackages from './pages/AdminPackages';
+import SupportPage from './pages/SupportPage';
+import AdminSupportPage from './pages/AdminSupportPage';
+import AdminWithdrawalsPage from './pages/AdminWithdrawalsPage';
 import EnrollMember from './pages/EnrollMember';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -40,11 +43,14 @@ function App() {
           <Route path="enroll" element={<EnrollMember />} />
           <Route path="wallet" element={<WalletPage />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="support" element={<SupportPage />} />
 
           {/* Admin Routes */}
           <Route path="admin" element={<AdminDashboard />} />
           <Route path="admin/commissions" element={<AdminCommissions />} />
           <Route path="admin/packages" element={<AdminPackages />} />
+          <Route path="admin/withdrawals" element={<AdminWithdrawalsPage />} />
+          <Route path="admin/support" element={<AdminSupportPage />} />
         </Route>
       </Routes>
     </Router>

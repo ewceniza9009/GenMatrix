@@ -140,6 +140,35 @@ export const requestWithdrawal = async (req: Request, res: Response) => {
   }
 };
 
+// Admin: Get all pending withdrawals
+export const getPendingWithdrawals = async (req: Request, res: Response) => {
+  try {
+    const wallets = await Wallet.find({
+      'transactions.status': 'PENDING',
+      'transactions.type': 'WITHDRAWAL'
+    }).populate('userId', 'username email');
+
+    // Flatten to list of pending txs with user info
+    const pendingRequests = [];
+    for (const wallet of wallets) {
+      for (const tx of wallet.transactions) {
+        if (tx.status === 'PENDING' && tx.type === 'WITHDRAWAL') {
+          pendingRequests.push({
+            // @ts-ignore
+            user: wallet.userId,
+            transaction: tx,
+            walletId: wallet._id
+          });
+        }
+      }
+    }
+
+    res.json(pendingRequests);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 // Admin only
 export const processWithdrawal = async (req: Request, res: Response) => {
   try {
