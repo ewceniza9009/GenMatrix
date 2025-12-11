@@ -39,12 +39,23 @@ const Settings = () => {
 
   // User Config State
   const [preference, setPreference] = useState('weaker_leg');
+  const [enableHoldingTank, setEnableHoldingTank] = useState('system'); // Default to system
+
+  useEffect(() => {
+    if (user) {
+      if (user.spilloverPreference) setPreference(user.spilloverPreference);
+      if (user.enableHoldingTank) setEnableHoldingTank(user.enableHoldingTank);
+    }
+  }, [user]);
 
   // Handlers
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await updateProfile({ spilloverPreference: preference }).unwrap();
+      await updateProfile({
+        spilloverPreference: preference,
+        enableHoldingTank
+      }).unwrap();
       alert('Profile Updated');
     } catch (err) {
       alert('Error updating profile');
@@ -133,6 +144,23 @@ const Settings = () => {
                 </select>
                 <p className="text-xs text-slate-400 mt-2">Determines where new signups from your referral link are placed.</p>
               </div>
+
+              <div className="mb-4 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-200 dark:border-slate-600">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Holding Tank Preference</label>
+                <select
+                  value={enableHoldingTank}
+                  onChange={(e) => setEnableHoldingTank(e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl p-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
+                >
+                  <option value="system">Use System Default</option>
+                  <option value="enabled">Always Enabled (Override)</option>
+                  <option value="disabled">Always Disabled (Override)</option>
+                </select>
+                <p className="text-xs text-slate-400 mt-2">
+                  "System Default" follows the admin setting. <br />
+                  "Always Enabled/Disabled" overrides the admin setting for YOUR recruits.
+                </p>
+              </div>
               <button className="w-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
                 <Save size={18} /> Save Preference
               </button>
@@ -170,10 +198,10 @@ const Settings = () => {
 
                   <div className="bg-gray-50 dark:bg-slate-900/50 p-3 rounded-xl border border-gray-100 dark:border-slate-700 flex items-center justify-between">
                     <div>
-                      <label className="block text-sm font-bold text-gray-900 dark:text-white">Holding Tank Mode</label>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-white">Global Holding Tank Mode</label>
                       <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                        If enabled, new signups go to the Holding Tank for manual placement. <br />
-                        If disabled, they are automatically placed based on spillover preference.
+                        Default setting for all users who haven't overridden it. <br />
+                        <span className="text-teal-500 font-bold">ON</span> = Recruits go to Tank. <span className="text-red-500 font-bold">OFF</span> = Auto-placed.
                       </p>
                     </div>
                     <div className="relative inline-block w-12 h-6 transition duration-200 ease-in-out rounded-full cursor-pointer">

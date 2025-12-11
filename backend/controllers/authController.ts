@@ -44,11 +44,27 @@ export const register = async (req: Request, res: Response) => {
       enrollmentPackage: pkg ? pkg._id : null
     });
 
-    // Check Holding Tank Mode
-    const config = await (SystemConfig as any).getLatest();
-    const isHoldingTank = config.holdingTankMode;
+    // Check Hybrid Holding Tank Logic
+    // 1. Check Sponsor Override
+    // 2. If 'system', check Global Config
 
-    let savedUser;
+    let savedUser: any;
+    let isHoldingTank = false;
+
+    if (sponsor) {
+      // @ts-ignore
+      const sponsorSetting = (sponsor as any).enableHoldingTank; // 'system' | 'enabled' | 'disabled'
+
+      if (sponsorSetting === 'enabled') {
+        isHoldingTank = true;
+      } else if (sponsorSetting === 'disabled') {
+        isHoldingTank = false;
+      } else {
+        // Default to System
+        const config = await (SystemConfig as any).getLatest();
+        isHoldingTank = config.holdingTankMode;
+      }
+    }
 
     if (isHoldingTank && sponsor) {
       // PARK USER
@@ -109,10 +125,49 @@ export const login = async (req: Request, res: Response) => {
         id: user._id,
         username: user.username,
         email: user.email,
-        role: user.role
+        role: user.role,
+        spilloverPreference: user.spilloverPreference,
+        enableHoldingTank: user.enableHoldingTank
       }
     });
 
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Update Profile Logic
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    // @ts-ignore
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+      user.username = req.body.username || user.username;
+      user.email = req.body.email || user.email;
+      if (req.body.password) {
+        user.password = await bcrypt.hash(req.body.password, 10);
+      }
+
+      // Settings updates
+      if (req.body.spilloverPreference) user.spilloverPreference = req.body.spilloverPreference;
+      if (req.body.enableHoldingTank !== undefined) user.enableHoldingTank = req.body.enableHoldingTank;
+
+      const updatedUser = await user.save();
+
+      res.json({
+        _id: updatedUser._id,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        spilloverPreference: updatedUser.spilloverPreference,
+        enableHoldingTank: updatedUser.enableHoldingTank,
+        token: req.body.token // Optional: if we want to refresh token or just keep it
+      });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

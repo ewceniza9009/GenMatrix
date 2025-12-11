@@ -26,6 +26,7 @@ export interface IUser extends Document {
 
   // Features
   spilloverPreference: 'extreme_left' | 'extreme_right' | 'weaker_leg' | 'balanced';
+  enableHoldingTank: 'system' | 'enabled' | 'disabled';
   multiCenter: boolean;
   rank: 'Bronze' | 'Silver' | 'Gold' | 'Diamond';
   isPlaced: boolean;
@@ -62,28 +63,30 @@ const userSchema = new Schema<IUser>({
     enum: ['extreme_left', 'extreme_right', 'weaker_leg', 'balanced'],
     default: 'weaker_leg'
   },
+  enableHoldingTank: { type: String, enum: ['system', 'enabled', 'disabled'], default: 'system' },
   multiCenter: { type: Boolean, default: false },
   rank: { type: String, enum: ['Bronze', 'Silver', 'Gold', 'Diamond'], default: 'Bronze' }
 });
 
 // Pre-save hook for path/level updates
 userSchema.pre('save', async function (next) {
-  if (this.isNew && this.parentId) {
+  const doc = this as any;
+  if (doc.isNew && doc.parentId) {
     try {
       // Need to cast constructor to Model to access findById
-      const User = this.constructor as mongoose.Model<IUser>;
-      const parent = await User.findById(this.parentId);
+      const User = doc.constructor as mongoose.Model<IUser>;
+      const parent = await User.findById(doc.parentId);
       if (parent) {
-        this.path = `${parent.path || ','}${this._id},`;
-        this.level = (parent.level || 0) + 1;
+        doc.path = `${parent.path || ','}${doc._id},`;
+        doc.level = (parent.level || 0) + 1;
       }
     } catch (error) {
       return next(error as Error);
     }
-  } else if (this.isNew && !this.parentId) {
+  } else if (doc.isNew && !doc.parentId) {
     // Root node handling
-    this.path = `,${this._id},`;
-    this.level = 0;
+    doc.path = `,${doc._id},`;
+    doc.level = 0;
   }
   next();
 });

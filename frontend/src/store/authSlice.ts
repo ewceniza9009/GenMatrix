@@ -5,6 +5,8 @@ interface User {
   username: string;
   email: string;
   role: 'admin' | 'distributor';
+  spilloverPreference?: string;
+  enableHoldingTank?: 'system' | 'enabled' | 'disabled';
 }
 
 interface AuthState {
