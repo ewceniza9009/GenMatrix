@@ -19,7 +19,8 @@ export const uploadKYC = async (req: AuthRequest, res: Response) => {
         // Multer stores file in req.file. 
         // We assume storage engine saves it to 'uploads/' and we store the path.
         // In a real app, use S3/Cloudinary. Here local.
-        const filePath = req.file.path.replace(/\\/g, '/'); // Cross-platform path
+        // Store relative path for serving
+        const filePath = `uploads/kyc/${req.file.filename}`;
 
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: 'User not found' });

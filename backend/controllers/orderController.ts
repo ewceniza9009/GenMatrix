@@ -2,38 +2,58 @@ import { Request, Response } from 'express';
 import Order from '../models/Order';
 import Product from '../models/Product';
 import Wallet from '../models/Wallet';
+import User from '../models/User';
 import SystemConfig from '../models/SystemConfig';
 import { CommissionEngine } from '../services/CommissionEngine';
 
-// Buy Items
+// Create Order (Members & Guests)
 export const createOrder = async (req: Request, res: Response) => {
     try {
-        // 1. Check Switch
-        const config = await (SystemConfig as any).getLatest();
-        if (!config.enableShop) {
-            return res.status(403).json({ message: 'Shop is currently disabled' });
-        }
+        const userId = (req as any).user?.id; // Authed User
+        const { items, guestDetails, referrerId } = req.body;
 
-        const userId = (req as any).user.id;
-        const { items } = req.body; // [{ productId, quantity }]
+        const isGuest = !userId;
+
+        // 1. Get System Config
+        const config = await (SystemConfig as any).getLatest();
+
+        // Gatekeeping
+        if (isGuest && !config.enablePublicShop) {
+            return res.status(403).json({ message: 'Public Shop is disabled' });
+        }
+        if (!isGuest && !config.enableShop) {
+            return res.status(403).json({ message: 'Member Shop is disabled' });
+        }
 
         if (!items || items.length === 0) {
             return res.status(400).json({ message: 'No items in order' });
         }
 
-        // 2. Validate Items & Calculate Totals
+        // 2. Process Items
         let totalAmount = 0;
         let totalPV = 0;
+        let totalRetailProfit = 0;
         const orderItems = [];
 
         for (const item of items) {
             const product = await Product.findById(item.productId);
-            if (!product) return res.status(400).json({ message: `Product not found: ${item.productId}` });
-            if (!product.isActive) return res.status(400).json({ message: `Product unavailable: ${product.name}` });
-            if (product.stock < item.quantity) return res.status(400).json({ message: `Insufficient stock for ${product.name}` });
+            if (!product || !product.isActive) {
+                return res.status(400).json({ message: `Unavailable: ${item.productId}` });
+            }
+            if (product.stock < item.quantity) {
+                return res.status(400).json({ message: `Out of stock: ${product.name}` });
+            }
 
-            const linePrice = product.price * item.quantity;
+            // Pricing Logic
+            const unitPrice = isGuest ? (product.retailPrice || product.price) : product.price;
+            const linePrice = unitPrice * item.quantity;
             const linePV = product.pv * item.quantity;
+
+            // Calculate Profit per item for Guests
+            if (isGuest) {
+                const memberCost = product.price * item.quantity;
+                totalRetailProfit += (linePrice - memberCost);
+            }
 
             totalAmount += linePrice;
             totalPV += linePV;
@@ -41,7 +61,8 @@ export const createOrder = async (req: Request, res: Response) => {
             orderItems.push({
                 productId: product._id,
                 name: product.name,
-                price: product.price,
+                price: unitPrice, // Charged Price
+                retailPrice: product.retailPrice, // Reference
                 pv: product.pv,
                 quantity: item.quantity,
                 totalPrice: linePrice,
@@ -49,52 +70,71 @@ export const createOrder = async (req: Request, res: Response) => {
             });
         }
 
-        // 3. Payment (Wallet)
-        const wallet = await Wallet.findOne({ userId });
-        if (!wallet || wallet.balance < totalAmount) {
-            return res.status(400).json({ message: 'Insufficient wallet balance' });
+        // 3. Payment Processing
+        // MEMBER: Wallet Deduction
+        if (!isGuest) {
+            const wallet = await Wallet.findOne({ userId });
+            if (!wallet || wallet.balance < totalAmount) {
+                return res.status(400).json({ message: 'Insufficient wallet balance' });
+            }
+
+            wallet.balance -= totalAmount;
+            wallet.transactions.push({
+                type: 'PURCHASE',
+                amount: totalAmount,
+                description: `Order Payment - ${orderItems.length} items`,
+                date: new Date(),
+                status: 'COMPLETED'
+            } as any);
+            await wallet.save();
+        }
+        // GUEST: Assume Payment Gateway Success (Mocked for now)
+        else {
+            // In a real app, verify Stripe/PayPal here.
         }
 
-        // Deduct
-        wallet.balance -= totalAmount;
-        wallet.transactions.push({
-            type: 'PURCHASE',
-            amount: totalAmount,
-            description: `Order Payment - ${orderItems.length} items`,
-            date: new Date(),
-            status: 'COMPLETED'
-        } as any);
-        await wallet.save();
-
-        // 4. Save Order
+        // 4. Create Order Record
         const order = await Order.create({
-            userId,
+            userId: userId || undefined,
+            referrerId: isGuest ? referrerId : undefined,
+            isGuest,
+            guestDetails: isGuest ? guestDetails : undefined,
             items: orderItems,
             totalAmount,
             totalPV,
-            status: 'PAID',
-            paymentMethod: 'WALLET'
+            status: 'PAID', // Assumed paid
+            paymentMethod: isGuest ? 'CREDIT_CARD' : 'WALLET'
         });
 
-        // 5. Update Inventory (Simple decrease)
+        // 5. Inventory Update
         for (const item of orderItems) {
             await Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } });
         }
 
-        // 6. COMMISSION ENGINE: Propagate PV
-        if (totalPV > 0) {
-            // Add to User's Personal PV? Or just upline?
-            // Usually Repurchase PV counts for Personal PV (Maintenance) AND Upline (Commission)
-            // But CommissionEngine.updateUplinePV primarily pushes UP.
-            // Let's assume we call that.
+        // 6. Commission & Profit Distribution
+        const beneficiaryId = isGuest ? referrerId : userId;
 
-            // NOTE: Some systems add to PersonalPV field on User too.
-            // CommissionEngine.updateUplinePV adds to PARENT's left/right. 
-            // It does NOT update the user's own "Personal PV" field in the User model unless we do it here.
-            // Let's do it here for completeness if User model has personalPV.
+        if (beneficiaryId) {
+            // A. Distribute Retail Profit (Guests Only)
+            if (isGuest && totalRetailProfit > 0) {
+                const refWallet = await Wallet.findOne({ userId: referrerId });
+                if (refWallet) {
+                    refWallet.balance += totalRetailProfit;
+                    refWallet.transactions.push({
+                        type: 'BONUS', // Generic bonus type or new RETAIL_PROFIT
+                        amount: totalRetailProfit,
+                        description: `Retail Profit from Guest Order #${order._id}`,
+                        date: new Date(),
+                        status: 'COMPLETED'
+                    } as any);
+                    await refWallet.save();
+                }
+            }
 
-            // We use the Engine for the heavy lifting up the tree.
-            await CommissionEngine.updateUplinePV(userId, totalPV);
+            // B. Propagate PV
+            // If Guest -> Referrer gets PV.
+            // If Member -> Member gets PV (Personal Volume) + Upline gets Group Volume.
+            await CommissionEngine.updateUplinePV(beneficiaryId, totalPV);
         }
 
         res.status(201).json(order);

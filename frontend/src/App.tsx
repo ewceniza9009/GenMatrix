@@ -12,6 +12,7 @@ import AdminSettingsPage from './pages/AdminSettingsPage';
 import EnrollMember from './pages/EnrollMember';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import PublicShopPage from './pages/PublicShopPage';
 import WalletPage from './pages/Wallet';
 import Settings from './pages/Settings';
 import Network from './pages/Network';
@@ -29,7 +30,9 @@ function App() {
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route path="/login" element={<Login />} />
+
         <Route path="/register" element={<Register />} />
+        <Route path="/store" element={<PublicShopPage />} />
 
         {/* Protected Dashboard Routes */}
         <Route

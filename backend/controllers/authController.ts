@@ -56,21 +56,26 @@ export const register = async (req: Request, res: Response) => {
     // 1. Check Sponsor Override
     // 2. If 'system', check Global Config
 
+    // Check Hybrid Holding Tank Logic
     let savedUser: any;
     let isHoldingTank = false;
 
     if (sponsor) {
       // @ts-ignore
-      const sponsorSetting = (sponsor as any).enableHoldingTank; // 'system' | 'enabled' | 'disabled'
+      const sponsorSetting = (sponsor as any).enableHoldingTank || 'system'; // Default to system if undefined
+      console.log(`[Register] Sponsor: ${sponsor.username}, Preference: ${sponsorSetting}`);
 
       if (sponsorSetting === 'enabled') {
         isHoldingTank = true;
+        console.log('[Register] Override: FORCE HOLDING TANK');
       } else if (sponsorSetting === 'disabled') {
         isHoldingTank = false;
+        console.log('[Register] Override: FORCE DIRECT PLACEMENT');
       } else {
-        // Default to System
+        // System Default
         const config = await (SystemConfig as any).getLatest();
         isHoldingTank = config.holdingTankMode;
+        console.log(`[Register] Using System Default: ${isHoldingTank}`);
       }
     }
 

@@ -9,12 +9,14 @@ const AdminSettingsPage = () => {
     // Local state for immediate UI feedback
     const [requireKYC, setRequireKYC] = useState(false);
     const [enableShop, setEnableShop] = useState(false);
+    const [enablePublicShop, setEnablePublicShop] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
     useEffect(() => {
         if (settings) {
             setRequireKYC(settings.withdrawals_require_kyc === true);
             setEnableShop(settings.enableShop === true);
+            setEnablePublicShop(settings.enablePublicShop === true);
         }
     }, [settings]);
 
@@ -43,6 +45,21 @@ const AdminSettingsPage = () => {
         } catch (error) {
             console.error('Failed to update setting', error);
             setEnableShop(!newValue); // Revert on error
+        }
+    };
+
+
+    const handleTogglePublicShop = async () => {
+        const newValue = !enablePublicShop;
+        setEnablePublicShop(newValue); // Optimistic update
+
+        try {
+            await updateSetting({ key: 'enablePublicShop', value: newValue }).unwrap();
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+        } catch (error) {
+            console.error('Failed to update setting', error);
+            setEnablePublicShop(!newValue); // Revert on error
         }
     };
 
@@ -78,9 +95,9 @@ const AdminSettingsPage = () => {
                         {/* Setting Item: Enable Shop */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
-                                <h3 className="font-medium text-gray-900 dark:text-white">Enable Product Shop</h3>
+                                <h3 className="font-medium text-gray-900 dark:text-white">Enable Product Shop (Members)</h3>
                                 <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
-                                    Show the Shop link in the sidebar and allow users to purchase products.
+                                    Show the Shop link in the sidebar for logged-in members.
                                 </p>
                             </div>
 
@@ -92,6 +109,28 @@ const AdminSettingsPage = () => {
                             >
                                 <span
                                     className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${enableShop ? 'translate-x-6' : 'translate-x-1'
+                                        }`}
+                                />
+                            </button>
+                        </div>
+
+                        {/* Setting Item: Enable Public Retail Shop */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-gray-100 dark:border-slate-700">
+                            <div>
+                                <h3 className="font-medium text-gray-900 dark:text-white">Enable Public Retail Shop</h3>
+                                <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+                                    Allow guests to purchase via referral links (e.g., /store?ref=user).
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={handleTogglePublicShop}
+                                disabled={isUpdating}
+                                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 ${enablePublicShop ? 'bg-teal-500' : 'bg-gray-200 dark:bg-slate-700'
+                                    }`}
+                            >
+                                <span
+                                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${enablePublicShop ? 'translate-x-6' : 'translate-x-1'
                                         }`}
                                 />
                             </button>

@@ -28,6 +28,21 @@ export const getShopProducts = async (req: Request, res: Response) => {
     }
 };
 
+// Public: Open Shop (No Login Required)
+export const getPublicProducts = async (req: Request, res: Response) => {
+    try {
+        const config = await (SystemConfig as any).getLatest();
+        if (!config.enablePublicShop) {
+            return res.status(403).json({ message: 'Public Shop is currently disabled' });
+        }
+
+        const products = await Product.find({ isActive: true }).sort({ sortOrder: 1, name: 1 });
+        res.json(products);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching products' });
+    }
+};
+
 // Admin: Get All Products
 export const getAllProducts = async (req: Request, res: Response) => {
     try {

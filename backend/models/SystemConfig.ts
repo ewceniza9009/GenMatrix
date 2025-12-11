@@ -17,6 +17,7 @@ export interface ISystemConfig extends Document {
     defaultSponsor: string; // 'root'
     holdingTankMode: boolean; // if true, new users go to holding tank
     enableShop: boolean; // toggle for product shop feature
+    enablePublicShop: boolean; // toggle for public retail shop (guests)
 }
 
 const systemConfigSchema = new Schema<ISystemConfig>({
@@ -38,7 +39,8 @@ const systemConfigSchema = new Schema<ISystemConfig>({
     matchingBonusGenerations: { type: [Number], default: [10, 5, 2] },
     defaultSponsor: { type: String, default: 'root' },
     holdingTankMode: { type: Boolean, default: true },
-    enableShop: { type: Boolean, default: false }
+    enableShop: { type: Boolean, default: false },
+    enablePublicShop: { type: Boolean, default: false }
 }, { timestamps: true });
 
 // Singleton helper

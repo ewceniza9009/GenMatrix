@@ -288,6 +288,9 @@ export const api = createApi({
     getShopProducts: builder.query({
       query: () => 'shop/shop',
     }),
+    getPublicProducts: builder.query({
+      query: () => 'shop/public',
+    }),
     createOrder: builder.mutation({
       query: (body) => ({
         url: 'orders',
@@ -343,7 +346,9 @@ export const {
   useMarkAllNotificationsReadMutation,
   useSeedNotificationsMutation,
   useGetShopStatusQuery,
+
   useGetShopProductsQuery,
+  useGetPublicProductsQuery,
   useCreateOrderMutation,
   useGetMyOrdersQuery,
   useGetSettingsQuery,

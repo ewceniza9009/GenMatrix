@@ -16,7 +16,17 @@ const AdminKYCPage = () => {
         // So we need to strip /api/v1/ if present, or just use the hostname
         const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1/';
         const rootUrl = apiBase.replace('/api/v1/', '');
-        return `${rootUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+
+        // Sanitize path: If it contains absolute path chars (colon), extract filename
+        let cleanPath = path;
+        if (cleanPath.includes(':')) {
+            // It's likely an absolute path (e.g. x:/...)
+            // Extract simple filename and assume standard location: uploads/kyc/
+            const filename = cleanPath.split(/[/\\]/).pop();
+            cleanPath = `uploads/kyc/${filename}`;
+        }
+
+        return `${rootUrl}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
     };
 
     const handleAction = async (userId: string, status: 'approved' | 'rejected') => {

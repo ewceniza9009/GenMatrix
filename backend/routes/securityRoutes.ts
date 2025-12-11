@@ -18,7 +18,9 @@ const router = express.Router();
 // Multer Storage Setup
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadPath = 'uploads/kyc';
+        // Use absolute path relative to this file (in routes/)
+        const uploadPath = path.join(__dirname, '../uploads/kyc');
+
         // Create dir if not exists
         if (!fs.existsSync(uploadPath)) {
             fs.mkdirSync(uploadPath, { recursive: true });
@@ -32,7 +34,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
     storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    limits: { fileSize: 15 * 1024 * 1024 }, // 15MB
     fileFilter: (req, file, cb) => {
         const filetypes = /jpeg|jpg|png|pdf/;
         const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
@@ -44,8 +46,23 @@ const upload = multer({
     }
 });
 
+// Wrapper to handle Multer errors
+const uploadMiddleware = (req: any, res: any, next: any) => {
+    upload.single('document')(req, res, (err: any) => {
+        if (err instanceof multer.MulterError) {
+            // A Multer error occurred when uploading.
+            return res.status(400).json({ message: `Upload Error: ${err.message}` });
+        } else if (err) {
+            // An unknown error occurred when uploading.
+            return res.status(400).json({ message: err.message });
+        }
+        // Everything went fine.
+        next();
+    });
+};
+
 // KYC
-router.post('/kyc/upload', protect, upload.single('document'), uploadKYC);
+router.post('/kyc/upload', protect, uploadMiddleware, uploadKYC);
 router.put('/kyc/status', protect, admin, updateKYCStatus);
 router.get('/kyc/pending', protect, admin, getPendingKYC);
 

@@ -135,7 +135,7 @@ const SecuritySettings = () => {
                                 Upload
                             </button>
                         </div>
-                        <p className="text-xs text-gray-400 mt-2">Max 5MB. JPEG, PNG, or PDF only.</p>
+                        <p className="text-xs text-gray-400 mt-2">Max 15MB. JPEG, PNG, or PDF only.</p>
                     </div>
                 )}
             </div>
