@@ -13,7 +13,7 @@ import { createNotification } from './notificationController';
 // Register Logic
 export const register = async (req: Request, res: Response) => {
   try {
-    const { username, email, password, sponsorUsername, packageName } = req.body;
+    const { username, email, password, sponsorUsername, packageName, firstName, middleName, lastName, occupation, phone, address } = req.body;
 
     // Check existing
     const existing = await User.findOne({ $or: [{ email }, { username }] });
@@ -43,7 +43,13 @@ export const register = async (req: Request, res: Response) => {
       username,
       email,
       password: hashedPassword,
-      enrollmentPackage: pkg ? pkg._id : null
+      enrollmentPackage: pkg ? pkg._id : null,
+      firstName,
+      middleName,
+      lastName,
+      occupation,
+      phone,
+      address
     });
 
     // Check Hybrid Holding Tank Logic
@@ -147,6 +153,12 @@ export const login = async (req: Request, res: Response) => {
         username: user.username,
         email: user.email,
         role: user.role,
+        firstName: user.firstName,
+        middleName: user.middleName,
+        lastName: user.lastName,
+        occupation: user.occupation,
+        phone: user.phone,
+        address: user.address,
         spilloverPreference: user.spilloverPreference,
         enableHoldingTank: user.enableHoldingTank
       }
@@ -171,6 +183,16 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
         user.password = await bcrypt.hash(req.body.password, 10);
       }
 
+      // Profile updates
+      if (req.body.firstName) user.firstName = req.body.firstName;
+      if (req.body.middleName) user.middleName = req.body.middleName;
+      if (req.body.lastName) user.lastName = req.body.lastName;
+      if (req.body.occupation) user.occupation = req.body.occupation;
+      if (req.body.phone) user.phone = req.body.phone;
+      if (req.body.address) {
+        user.address = { ...user.address, ...req.body.address };
+      }
+
       // Settings updates
       if (req.body.spilloverPreference) user.spilloverPreference = req.body.spilloverPreference;
       if (req.body.enableHoldingTank !== undefined) user.enableHoldingTank = req.body.enableHoldingTank;
@@ -178,10 +200,16 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
       const updatedUser = await user.save();
 
       res.json({
-        _id: updatedUser._id,
+        id: updatedUser._id,
         username: updatedUser.username,
         email: updatedUser.email,
         role: updatedUser.role,
+        firstName: updatedUser.firstName,
+        middleName: updatedUser.middleName,
+        lastName: updatedUser.lastName,
+        occupation: updatedUser.occupation,
+        phone: updatedUser.phone,
+        address: updatedUser.address,
         spilloverPreference: updatedUser.spilloverPreference,
         enableHoldingTank: updatedUser.enableHoldingTank,
         token: req.body.token // Optional: if we want to refresh token or just keep it

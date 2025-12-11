@@ -5,6 +5,18 @@ interface User {
   username: string;
   email: string;
   enrollmentPackage?: string; // ID
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  occupation?: string;
+  phone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
+  };
   isActive: boolean;
   role: 'admin' | 'distributor';
   kycStatus?: 'pending' | 'approved' | 'rejected';

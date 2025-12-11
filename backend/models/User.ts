@@ -4,6 +4,19 @@ export interface IUser extends Document {
   username: string;
   email: string;
   password?: string;
+  // Personal Info
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  occupation?: string;
+  phone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
+  };
   profileImage?: string;
   enrollmentPackage?: mongoose.Types.ObjectId;
   isActive: boolean;
@@ -43,6 +56,21 @@ const userSchema = new Schema<IUser>({
   username: { type: String, unique: true, index: true, required: true },
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
+
+  // Personal Info
+  firstName: { type: String },
+  middleName: { type: String },
+  lastName: { type: String },
+  occupation: { type: String },
+  phone: { type: String },
+  address: {
+    street: { type: String },
+    city: { type: String },
+    state: { type: String },
+    zip: { type: String },
+    country: { type: String }
+  },
+
   profileImage: { type: String },
   enrollmentPackage: { type: Schema.Types.ObjectId, ref: 'Package' },
   isActive: { type: Boolean, default: true },
