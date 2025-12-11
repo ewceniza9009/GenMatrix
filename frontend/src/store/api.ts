@@ -22,6 +22,9 @@ export const api = createApi({
     getUpline: builder.query({
       query: (userId) => `network/upline?userId=${userId}`,
     }),
+    getMemberDetails: builder.query({
+      query: (memberId) => `network/member/${memberId}`,
+    }),
     login: builder.mutation({
       query: (credentials) => ({
         url: 'auth/login',
@@ -286,6 +289,7 @@ export const {
   useLoginMutation,
   useRegisterMutation,
   useGetUplineQuery,
+  useGetMemberDetailsQuery,
   useGetWalletQuery,
   useRequestWithdrawalMutation,
   useUpdateProfileMutation,

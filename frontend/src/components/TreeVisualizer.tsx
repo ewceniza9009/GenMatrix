@@ -6,9 +6,10 @@ interface TreeVisualizerProps {
   data: any;
   isLoading: boolean;
   error: any;
+  onNodeClick?: (nodeId: string) => void;
 }
 
-const TreeVisualizer = ({ data: treeData, isLoading, error }: TreeVisualizerProps) => {
+const TreeVisualizer = ({ data: treeData, isLoading, error, onNodeClick }: TreeVisualizerProps) => {
   // Config removed fetch logic
 
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
@@ -34,10 +35,12 @@ const TreeVisualizer = ({ data: treeData, isLoading, error }: TreeVisualizerProp
     return (
       <foreignObject width="260" height="150" x="-130" y="-75">
         <div
-          className={`relative bg-white dark:bg-[#1a1b23] rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden border-t-4 ${rankColor} border-r border-b border-l border-gray-100 dark:border-white/5 h-full group`}
-          onClick={toggleNode}
+          className={`relative bg-white dark:bg-[#1a1b23] rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden border-t-4 ${rankColor} border-r border-b border-l border-gray-100 dark:border-white/5 h-full group`}
         >
-          <div className="p-4">
+          {/* Main Click Area for Toggling */}
+          <div className="absolute inset-0 z-0 cursor-pointer" onClick={toggleNode} title="Click to Expand/Collapse"></div>
+
+          <div className="p-4 relative z-10 pointer-events-none"> {/* Content container passes clicks through, but children re-enable pointer-events */}
             {/* Header: Avatar & Info */}
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -76,10 +79,25 @@ const TreeVisualizer = ({ data: treeData, isLoading, error }: TreeVisualizerProp
             </div>
 
             {/* Total Earned Badge (Floating) */}
-            <div className="absolute top-2 right-2">
+            <div className="absolute top-2 right-2 pointer-events-auto">
               <span className="inline-flex items-center px-2 py-1 rounded bg-green-50 dark:bg-green-500/10 text-[10px] font-bold text-green-700 dark:text-green-400">
                 ${(nodeDatum.attributes?.totalEarned || 0).toLocaleString()}
               </span>
+            </div>
+
+            {/* View Details Button (Floating Bottom Right) */}
+            <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onNodeClick && nodeDatum.attributes?.id) {
+                    onNodeClick(nodeDatum.attributes.id);
+                  }
+                }}
+                className="p-1.5 bg-teal-500 hover:bg-teal-600 text-white rounded-lg shadow-lg transform hover:scale-110 transition-all text-[10px] font-bold flex items-center gap-1"
+              >
+                <User size={12} /> View
+              </button>
             </div>
           </div>
         </div>
@@ -96,7 +114,7 @@ const TreeVisualizer = ({ data: treeData, isLoading, error }: TreeVisualizerProp
       style={containerStyles}
       ref={el => {
         if (el && !translate.x) {
-          const { width, height } = el.getBoundingClientRect();
+          const { width } = el.getBoundingClientRect();
           setTranslate({ x: width / 2, y: 100 }); // Center initial view
         }
       }}

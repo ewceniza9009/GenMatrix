@@ -131,3 +131,68 @@ export const searchDownline = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Search failed' });
   }
 };
+
+// Get Member Details
+export const getMemberDetails = async (req: Request, res: Response) => {
+  try {
+    const { memberId } = req.params;
+    // @ts-ignore
+    const currentUserId = req.user._id;
+
+    if (!memberId) {
+      return res.status(400).json({ message: 'Member ID required' });
+    }
+
+    const member = await User.findById(memberId);
+    if (!member) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    // Security check: Ensure member is in downline (or is self)
+    // We can check if member.path contains currentUserId or if member._id === currentUserId
+    // Also allow admin to view anyone
+    // @ts-ignore
+    const requestor = await User.findById(currentUserId);
+
+    const isSelf = memberId === currentUserId.toString();
+    const isDownline = member.path && member.path.includes(currentUserId.toString());
+    const isAdmin = requestor && requestor.role === 'admin';
+
+    if (!isSelf && !isDownline && !isAdmin) {
+      return res.status(403).json({ message: 'Unauthorized access to member details' });
+    }
+
+    // Fetch stats
+    const commission = await Commission.findOne({ userId: memberId });
+    const directRecruitsCount = await User.countDocuments({ sponsorId: memberId });
+    const totalTeamSize = await User.countDocuments({ path: { $regex: `,${memberId},` } });
+
+    res.json({
+      profile: {
+        username: member.username,
+        email: member.email,
+        rank: member.rank,
+        firstName: member.firstName,
+        lastName: member.lastName,
+        occupation: member.occupation,
+        phone: member.phone,
+        address: member.address,
+        country: member.address?.country,
+        enrollmentDate: member.enrollmentDate,
+        profileImage: member.profileImage,
+        active: member.isActive
+      },
+      stats: {
+        currentLeftPV: member.currentLeftPV,
+        currentRightPV: member.currentRightPV,
+        totalEarned: commission ? commission.totalEarned : 0,
+        directRecruits: directRecruitsCount,
+        teamSize: totalTeamSize
+      }
+    });
+
+  } catch (err) {
+    console.error('Get Member Details Error:', err);
+    res.status(500).json({ message: 'Server error retrieving member details' });
+  }
+};

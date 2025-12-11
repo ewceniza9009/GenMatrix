@@ -14,6 +14,8 @@ router.get('/holding-tank', protect, placementController.getHoldingTank);
 router.post('/place-member', protect, placementController.placeUserManually);
 
 // Search
+// Search
 router.get('/search-downline', protect, genealogyController.searchDownline);
+router.get('/member/:memberId', protect, genealogyController.getMemberDetails);
 
 export default router;

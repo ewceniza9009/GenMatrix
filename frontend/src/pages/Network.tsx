@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import TreeVisualizer from '../components/TreeVisualizer';
-import HoldingTank from '../components/HoldingTank'; // Import
+import HoldingTank from '../components/HoldingTank';
+import NetworkNodeModal from '../components/NetworkNodeModal'; // Import
 import { Search, Filter, ZoomIn, ZoomOut, Download, List } from 'lucide-react';
 import { useLazySearchDownlineQuery, useGetTreeQuery } from '../store/api';
 import { useSelector } from 'react-redux';
@@ -12,6 +13,7 @@ const Network = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [triggerSearch, { data: searchResults, isFetching }] = useLazySearchDownlineQuery();
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+  const [viewingMemberId, setViewingMemberId] = useState<string | null>(null);
 
   // Fetch Tree Data logic moved here
   const rootId = focusedNodeId || user?.id;
@@ -155,6 +157,14 @@ const Network = () => {
         </div>
       )}
 
+      {/* Node Details Modal */}
+      {viewingMemberId && (
+        <NetworkNodeModal
+          memberId={viewingMemberId}
+          onClose={() => setViewingMemberId(null)}
+        />
+      )}
+
       {/* Main Tree Container */}
       <div className="flex-1 bg-gray-50 dark:bg-slate-900 rounded-xl overflow-hidden shadow-inner border border-gray-200 dark:border-slate-700 relative w-full h-full flex flex-col">
         {/* Floating Controls (Visual only for now) */}
@@ -164,7 +174,12 @@ const Network = () => {
         </div>
 
         {/* The Tree Component */}
-        <TreeVisualizer data={treeData} isLoading={isTreeLoading} error={treeError} />
+        <TreeVisualizer
+          data={treeData}
+          isLoading={isTreeLoading}
+          error={treeError}
+          onNodeClick={(id) => setViewingMemberId(id)}
+        />
       </div>
     </div>
   );
