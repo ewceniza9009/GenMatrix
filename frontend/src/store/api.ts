@@ -13,7 +13,7 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ['User', 'Wallet', 'Tree', 'Packages', 'Tickets', 'Withdrawals', 'Admin', 'SystemLogs', 'Notifications'],
+  tagTypes: ['User', 'Wallet', 'Tree', 'Packages', 'Tickets', 'Withdrawals', 'Admin', 'SystemLogs', 'Notifications', 'Settings'],
   endpoints: (builder) => ({
     getTree: builder.query({
       query: (rootId) => `network/tree${rootId ? `?rootId=${rootId}` : ''}`,
@@ -264,6 +264,20 @@ export const api = createApi({
       }),
       invalidatesTags: ['Notifications'],
     }),
+
+    // Settings
+    getSettings: builder.query<Record<string, any>, void>({
+      query: () => 'settings',
+      providesTags: ['Settings'],
+    }),
+    updateSetting: builder.mutation<any, { key: string; value: any }>({
+      query: (body) => ({
+        url: 'settings',
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Settings'],
+    }),
   }),
 });
 
@@ -305,5 +319,7 @@ export const {
   useGetNotificationsQuery,
   useMarkNotificationReadMutation,
   useMarkAllNotificationsReadMutation,
-  useSeedNotificationsMutation
+  useSeedNotificationsMutation,
+  useGetSettingsQuery,
+  useUpdateSettingMutation
 } = api;

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Wallet from '../models/Wallet';
 import { AuthRequest } from '../middleware/authMiddleware';
 import { createNotification } from './notificationController';
+import { getSettingValue } from './settingsController';
 
 export const getMyWallet = async (req: AuthRequest, res: Response) => {
   try {
@@ -117,6 +118,17 @@ export const requestWithdrawal = async (req: AuthRequest, res: Response) => {
 
     if (wallet.balance < amount) {
       return res.status(400).json({ message: 'Insufficient balance' });
+    }
+
+    // Check System Setting for KYC
+    const requireKYC = await getSettingValue('withdrawals_require_kyc', false);
+    if (requireKYC) {
+      if (req.user.kycStatus !== 'approved') {
+        return res.status(403).json({
+          message: 'KYC Verification Required',
+          error: 'kyc_required'
+        });
+      }
     }
 
     if (amount < 10) {

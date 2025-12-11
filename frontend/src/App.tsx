@@ -8,6 +8,7 @@ import SupportPage from './pages/SupportPage';
 import AdminSupportPage from './pages/AdminSupportPage';
 import AdminWithdrawalsPage from './pages/AdminWithdrawalsPage';
 import AdminKYCPage from './pages/AdminKYCPage';
+import AdminSettingsPage from './pages/AdminSettingsPage';
 import EnrollMember from './pages/EnrollMember';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -52,6 +53,7 @@ function App() {
           <Route path="admin/withdrawals" element={<AdminWithdrawalsPage />} />
           <Route path="admin/support" element={<AdminSupportPage />} />
           <Route path="admin/kyc" element={<AdminKYCPage />} />
+          <Route path="admin/settings" element={<AdminSettingsPage />} />
         </Route>
       </Routes>
     </Router>
