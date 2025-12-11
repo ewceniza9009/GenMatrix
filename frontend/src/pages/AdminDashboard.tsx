@@ -54,8 +54,6 @@ const AdminDashboard = () => {
     return order === 'asc' ? <ArrowUpDown size={14} className="text-teal-600 rotate-180 transition-transform" /> : <ArrowUpDown size={14} className="text-teal-600 transition-transform" />;
   };
 
-  const getHeaderClass = (field: string) => `px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors select-none ${sortBy === field ? 'text-teal-600 dark:text-teal-400 font-bold bg-gray-50 dark:bg-slate-700/30' : ''}`;
-
   const getLogIcon = (type: string) => {
     switch (type) {
       case 'ERROR': return <AlertCircle size={18} className="text-red-500" />;
@@ -146,42 +144,66 @@ const AdminDashboard = () => {
           ) : !logs || logs.length === 0 ? (
             <div className="p-6 text-gray-500 dark:text-slate-500 text-center">No recent activity found. Click "Run Payout Cycle" to generate logs.</div>
           ) : (
-            <table className="w-full text-left text-gray-700 dark:text-slate-300">
-              <thead className="bg-gray-50 dark:bg-slate-900/50 text-gray-500 dark:text-slate-400 uppercase text-xs font-semibold backdrop-blur-sm">
-                <tr>
-                  <th className={`px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors select-none ${sortBy === 'type' ? 'text-teal-600 dark:text-teal-400 font-bold bg-gray-50 dark:bg-slate-700/30' : ''}`} onClick={() => handleSort('type')}>
-                    <div className="flex items-center gap-1">Type {renderSortIcon('type')}</div>
-                  </th>
-                  <th className={`px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors select-none ${sortBy === 'action' ? 'text-teal-600 dark:text-teal-400 font-bold bg-gray-50 dark:bg-slate-700/30' : ''}`} onClick={() => handleSort('action')}>
-                    <div className="flex items-center gap-1">Action {renderSortIcon('action')}</div>
-                  </th>
-                  <th className={`px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors select-none ${sortBy === 'details' ? 'text-teal-600 dark:text-teal-400 font-bold bg-gray-50 dark:bg-slate-700/30' : ''}`} onClick={() => handleSort('details')}>
-                    <div className="flex items-center gap-1">Details {renderSortIcon('details')}</div>
-                  </th>
-                  <th className={`text-right px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors select-none ${sortBy === 'timestamp' ? 'text-teal-600 dark:text-teal-400 font-bold bg-gray-50 dark:bg-slate-700/30' : ''}`} onClick={() => handleSort('timestamp')}>
-                    <div className="flex items-center justify-end gap-1">Time {renderSortIcon('timestamp')}</div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
-                {logs.map((log: any) => (
-                  <tr key={log._id} className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
-                    <td className="px-6 py-3">
-                      {getLogIcon(log.type)}
-                    </td>
-                    <td className="px-6 py-3 font-mono text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wide">
-                      {log.action}
-                    </td>
-                    <td className="px-6 py-3 text-sm text-gray-600 dark:text-slate-400">
-                      {log.details}
-                    </td>
-                    <td className="px-6 py-3 text-right text-xs text-gray-500 dark:text-slate-500 font-mono">
-                      {new Date(log.timestamp).toLocaleString()}
-                    </td>
+            <>
+              {/* Desktop Table */}
+              <table className="hidden md:table w-full text-left text-gray-700 dark:text-slate-300">
+                <thead className="bg-gray-50 dark:bg-slate-900/50 text-gray-500 dark:text-slate-400 uppercase text-xs font-semibold backdrop-blur-sm">
+                  <tr>
+                    <th className={`px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors select-none ${sortBy === 'type' ? 'text-teal-600 dark:text-teal-400 font-bold bg-gray-50 dark:bg-slate-700/30' : ''}`} onClick={() => handleSort('type')}>
+                      <div className="flex items-center gap-1">Type {renderSortIcon('type')}</div>
+                    </th>
+                    <th className={`px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors select-none ${sortBy === 'action' ? 'text-teal-600 dark:text-teal-400 font-bold bg-gray-50 dark:bg-slate-700/30' : ''}`} onClick={() => handleSort('action')}>
+                      <div className="flex items-center gap-1">Action {renderSortIcon('action')}</div>
+                    </th>
+                    <th className={`px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors select-none ${sortBy === 'details' ? 'text-teal-600 dark:text-teal-400 font-bold bg-gray-50 dark:bg-slate-700/30' : ''}`} onClick={() => handleSort('details')}>
+                      <div className="flex items-center gap-1">Details {renderSortIcon('details')}</div>
+                    </th>
+                    <th className={`text-right px-6 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors select-none ${sortBy === 'timestamp' ? 'text-teal-600 dark:text-teal-400 font-bold bg-gray-50 dark:bg-slate-700/30' : ''}`} onClick={() => handleSort('timestamp')}>
+                      <div className="flex items-center justify-end gap-1">Time {renderSortIcon('timestamp')}</div>
+                    </th>
                   </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                  {logs.map((log: any) => (
+                    <tr key={log._id} className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
+                      <td className="px-6 py-3">
+                        {getLogIcon(log.type)}
+                      </td>
+                      <td className="px-6 py-3 font-mono text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wide">
+                        {log.action}
+                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-600 dark:text-slate-400">
+                        {log.details}
+                      </td>
+                      <td className="px-6 py-3 text-right text-xs text-gray-500 dark:text-slate-500 font-mono">
+                        {new Date(log.timestamp).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Mobile List View */}
+              <div className="md:hidden divide-y divide-gray-100 dark:divide-white/5">
+                {logs.map((log: any) => (
+                  <div key={log._id} className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {getLogIcon(log.type)}
+                        <span className="font-mono text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wide">{log.action}</span>
+                      </div>
+                      <span className="text-[10px] text-gray-400 font-mono">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-slate-400 bg-gray-50 dark:bg-black/20 p-2 rounded border border-gray-100 dark:border-white/5">
+                      {log.details}
+                    </p>
+                    <div className="text-[10px] text-gray-400 text-right">
+                      {new Date(log.timestamp).toLocaleDateString()}
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </>
           )}
         </div>
 

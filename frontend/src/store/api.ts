@@ -13,7 +13,7 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ['User', 'Wallet', 'Tree', 'Packages', 'Tickets', 'Withdrawals', 'Admin', 'SystemLogs'],
+  tagTypes: ['User', 'Wallet', 'Tree', 'Packages', 'Tickets', 'Withdrawals', 'Admin', 'SystemLogs', 'Notifications'],
   endpoints: (builder) => ({
     getTree: builder.query({
       query: (rootId) => `network/tree${rootId ? `?rootId=${rootId}` : ''}`,
@@ -237,6 +237,33 @@ export const api = createApi({
       }),
       invalidatesTags: ['User'],
     }),
+
+    // Notifications
+    getNotifications: builder.query<any[], void>({
+      query: () => 'notifications',
+      providesTags: ['Notifications'],
+    }),
+    markNotificationRead: builder.mutation({
+      query: (id) => ({
+        url: `notifications/${id}/read`,
+        method: 'PUT',
+      }),
+      invalidatesTags: ['Notifications'],
+    }),
+    markAllNotificationsRead: builder.mutation({
+      query: () => ({
+        url: 'notifications/read-all',
+        method: 'PUT',
+      }),
+      invalidatesTags: ['Notifications'],
+    }),
+    seedNotifications: builder.mutation({
+      query: () => ({
+        url: 'notifications/seed',
+        method: 'POST',
+      }),
+      invalidatesTags: ['Notifications'],
+    }),
   }),
 });
 
@@ -274,5 +301,9 @@ export const {
   useUpdateKYCStatusMutation,
   useGenerate2FAMutation,
   useVerify2FAMutation,
-  useDisable2FAMutation
+  useDisable2FAMutation,
+  useGetNotificationsQuery,
+  useMarkNotificationReadMutation,
+  useMarkAllNotificationsReadMutation,
+  useSeedNotificationsMutation
 } = api;

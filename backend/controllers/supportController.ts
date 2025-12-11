@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
+import { AuthRequest } from '../middleware/authMiddleware';
 import Ticket from '../models/Ticket';
 import mongoose from 'mongoose';
 
 // Create a new ticket
-export const createTicket = async (req: Request, res: Response) => {
+export const createTicket = async (req: AuthRequest, res: Response) => {
     try {
-        const userId = (req as any).user._id;
+        const userId = req.user._id;
         const { subject, message } = req.body;
 
         const ticket = await Ticket.create({
@@ -25,9 +26,9 @@ export const createTicket = async (req: Request, res: Response) => {
 };
 
 // Get my tickets (User)
-export const getMyTickets = async (req: Request, res: Response) => {
+export const getMyTickets = async (req: AuthRequest, res: Response) => {
     try {
-        const userId = (req as any).user._id;
+        const userId = req.user._id;
         const tickets = await Ticket.find({ userId }).sort({ updatedAt: -1 });
         res.json(tickets);
     } catch (error) {
@@ -46,11 +47,11 @@ export const getAllTickets = async (req: Request, res: Response) => {
 };
 
 // Reply to ticket (User or Admin)
-export const replyTicket = async (req: Request, res: Response) => {
+export const replyTicket = async (req: AuthRequest, res: Response) => {
     try {
         const { ticketId } = req.params;
         const { message } = req.body;
-        const user = (req as any).user;
+        const user = req.user;
 
         // Determine sender type based on role
         const sender = user.role === 'admin' ? 'admin' : 'user';

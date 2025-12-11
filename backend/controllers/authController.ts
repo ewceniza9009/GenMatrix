@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthRequest } from '../middleware/authMiddleware';
 import User from '../models/User';
 import Commission from '../models/Commission';
 import Wallet from '../models/Wallet';
@@ -138,7 +139,7 @@ export const login = async (req: Request, res: Response) => {
 };
 
 // Update Profile Logic
-export const updateProfile = async (req: Request, res: Response) => {
+export const updateProfile = async (req: AuthRequest, res: Response) => {
   try {
     // @ts-ignore
     const user = await User.findById(req.user._id);

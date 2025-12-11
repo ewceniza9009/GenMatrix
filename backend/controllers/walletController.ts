@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import Wallet from '../models/Wallet';
+import { AuthRequest } from '../middleware/authMiddleware';
 
-export const getMyWallet = async (req: Request, res: Response) => {
+export const getMyWallet = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user.id;
     const page = parseInt(req.query.page as string) || 1;
@@ -105,7 +106,7 @@ export const getMyWallet = async (req: Request, res: Response) => {
   }
 };
 
-export const requestWithdrawal = async (req: Request, res: Response) => {
+export const requestWithdrawal = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user.id;
     const { amount, method, details } = req.body;

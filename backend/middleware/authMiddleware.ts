@@ -11,13 +11,17 @@ interface DecodedToken {
 // Extend Express Request to include user
 declare global {
   namespace Express {
-    interface Request {
+    export interface AuthRequest extends Request {
       user?: any;
     }
   }
 }
 
-export const protect = async (req: Request, res: Response, next: NextFunction) => {
+export interface AuthRequest extends Request {
+  user?: any;
+}
+
+export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
   let token;
 
   if (
@@ -41,7 +45,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
   }
 };
 
-export const admin = (req: Request, res: Response, next: NextFunction) => {
+export const admin = (req: AuthRequest, res: Response, next: NextFunction) => {
   if (req.user && req.user.role === 'admin') {
     next();
   } else {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useGetPendingWithdrawalsQuery, useProcessWithdrawalMutation } from '../store/api';
-import { DollarSign, CheckCircle, XCircle, Search, CreditCard, Calendar } from 'lucide-react';
+import { CheckCircle, XCircle, Search, CreditCard, Calendar } from 'lucide-react';
 
 const AdminWithdrawalsPage = () => {
     const { data: withdrawals, isLoading } = useGetPendingWithdrawalsQuery();
@@ -53,7 +53,8 @@ const AdminWithdrawalsPage = () => {
 
             <div className="bg-white dark:bg-[#1a1b23] rounded-xl border border-gray-200 dark:border-white/5 overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    {/* Desktop Table */}
+                    <table className="hidden md:table w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-slate-400 text-xs uppercase tracking-wider">
                                 <th className="p-4 font-semibold">User</th>
@@ -120,6 +121,57 @@ const AdminWithdrawalsPage = () => {
                             )}
                         </tbody>
                     </table>
+
+                    {/* Mobile List View */}
+                    <div className="md:hidden divide-y divide-gray-100 dark:divide-white/5">
+                        {isLoading ? (
+                            <div className="p-8 text-center text-gray-500">Loading requests...</div>
+                        ) : filteredWithdrawals?.length === 0 ? (
+                            <div className="p-8 text-center text-gray-500">No pending withdrawals found.</div>
+                        ) : (
+                            filteredWithdrawals?.map((item: any) => (
+                                <div key={item.transaction._id} className="p-4 space-y-4">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                                                {item.user?.username?.substring(0, 2).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <div className="font-bold text-gray-900 dark:text-white">{item.user?.username}</div>
+                                                <div className="text-xs text-gray-500">{item.user?.email}</div>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="font-bold text-gray-900 dark:text-white text-xl block">
+                                                ${Math.abs(item.transaction.amount).toFixed(2)}
+                                            </span>
+                                            <span className="text-[10px] text-gray-400">{new Date(item.transaction.date).toLocaleDateString()}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-gray-50 dark:bg-black/20 p-3 rounded-lg border border-gray-100 dark:border-white/5 flex items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
+                                        <CreditCard size={16} className="text-gray-400" />
+                                        {item.transaction.description}
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={() => handleProcess(item, 'APPROVE')}
+                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white text-sm font-bold rounded-lg transition"
+                                        >
+                                            <CheckCircle size={16} /> Approve & Pay
+                                        </button>
+                                        <button
+                                            onClick={() => handleProcess(item, 'REJECT')}
+                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 text-sm font-bold rounded-lg transition"
+                                        >
+                                            <XCircle size={16} /> Reject
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

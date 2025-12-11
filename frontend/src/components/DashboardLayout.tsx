@@ -117,30 +117,17 @@ const DashboardLayout = () => {
           )}
         </nav>
 
-        {/* User Profile Footer */}
-        <div className="p-4 mx-4 mb-4 bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-white/5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
-              {user?.username?.substring(0, 2).toUpperCase()}
-            </div>
-            <div className="overflow-hidden flex-1">
-              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user?.username}</p>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <p className="text-xs text-gray-500 dark:text-slate-400 truncate">Online</p>
-              </div>
-            </div>
-          </div>
-
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-gray-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 py-2 rounded-lg transition-all"
-          >
-            <LogOut size={14} />
-            Sign Out
-          </button>
-        </div>
       </aside>
+
+      {/* Sidebar Overlay (Mobile) */}
+      {
+        isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )
+      }
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
@@ -156,8 +143,30 @@ const DashboardLayout = () => {
 
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1"></div>
             <NotificationCenter />
+
+            <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1"></div>
+
+            {/* User Profile - Moved from Sidebar */}
+            <div className="flex items-center gap-3 pl-2">
+              <div className="hidden md:block text-right">
+                <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{user?.username || 'User'}</p>
+                <div className="flex items-center justify-end gap-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                  <p className="text-[10px] text-gray-500 dark:text-slate-400 font-medium">Online</p>
+                </div>
+              </div>
+              <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md ring-2 ring-white dark:ring-[#1a1b23]">
+                {user?.username?.substring(0, 2).toUpperCase()}
+              </div>
+              <button
+                onClick={handleLogout}
+                className="p-2 ml-1 text-gray-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                title="Sign Out"
+              >
+                <LogOut size={20} />
+              </button>
+            </div>
           </div>
         </header>
 
@@ -171,7 +180,7 @@ const DashboardLayout = () => {
           </div>
         </main>
       </div>
-    </div>
+    </div >
   );
 };
 

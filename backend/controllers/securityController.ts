@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthRequest } from '../middleware/authMiddleware';
 import User from '../models/User';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
@@ -6,9 +7,9 @@ import QRCode from 'qrcode';
 // --- KYC ---
 
 // Upload KYC Document
-export const uploadKYC = async (req: Request, res: Response) => {
+export const uploadKYC = async (req: AuthRequest, res: Response) => {
     try {
-        const userId = (req as any).user._id;
+        const userId = req.user._id;
 
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
@@ -67,9 +68,9 @@ export const updateKYCStatus = async (req: Request, res: Response) => {
 // --- 2FA ---
 
 // Generate 2FA Secret
-export const generate2FA = async (req: Request, res: Response) => {
+export const generate2FA = async (req: AuthRequest, res: Response) => {
     try {
-        const userId = (req as any).user._id;
+        const userId = req.user._id;
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -97,10 +98,10 @@ export const generate2FA = async (req: Request, res: Response) => {
 };
 
 // Verify and Enable 2FA
-export const verify2FA = async (req: Request, res: Response) => {
+export const verify2FA = async (req: AuthRequest, res: Response) => {
     try {
         const { token } = req.body;
-        const userId = (req as any).user._id;
+        const userId = req.user._id;
 
         const user = await User.findById(userId);
         if (!user || !user.twoFactorSecret || !user.twoFactorSecret.temp) {
@@ -128,12 +129,12 @@ export const verify2FA = async (req: Request, res: Response) => {
 };
 
 // Disable 2FA
-export const disable2FA = async (req: Request, res: Response) => {
+export const disable2FA = async (req: AuthRequest, res: Response) => {
     try {
         const { password, token } = req.body; // Require password + token to disable for security
         // For simplicity, just token or password. Let's use just token if they are logged in.
 
-        const userId = (req as any).user._id;
+        const userId = req.user._id;
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -160,7 +161,7 @@ export const disable2FA = async (req: Request, res: Response) => {
 };
 
 // Validate 2FA (for login/actions)
-export const validate2FA = async (req: Request, res: Response) => {
+export const validate2FA = async (req: AuthRequest, res: Response) => {
     try {
         const { token, userId } = req.body; // If passing userId explicitly (admin?) or req.user
 

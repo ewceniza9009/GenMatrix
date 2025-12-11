@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useGetTicketsQuery, useCreateTicketMutation, useReplyTicketMutation } from '../store/api';
-import { Send, MessageSquare, Clock, CheckCircle, Plus } from 'lucide-react';
+import { Send, MessageSquare, Clock, CheckCircle, Plus, ArrowLeft } from 'lucide-react';
 
 const SupportPage = () => {
     const { data: tickets, isLoading } = useGetTicketsQuery();
@@ -32,16 +32,21 @@ const SupportPage = () => {
         try {
             await replyTicket({ ticketId: selectedTicket._id, message: replyMessage }).unwrap();
             setReplyMessage('');
-            // Optimistically update or refetch happens via tag invalidation
         } catch (err) {
             console.error('Failed to reply', err);
         }
     };
 
+    // Mobile View Logic:
+    // If ticket selected OR creating new -> Hide List
+    // Else -> Show List
+    const showList = !selectedTicket && !isNewTicketOpen;
+
     return (
-        <div className="flex h-[calc(100vh-8rem)] gap-6">
+        <div className="flex h-[calc(100vh-8rem)] md:gap-6 relative">
             {/* Sidebar List */}
-            <div className="w-1/3 bg-white dark:bg-[#1a1b23] rounded-xl border border-gray-200 dark:border-white/5 flex flex-col overflow-hidden">
+            <div className={`w-full md:w-1/3 bg-white dark:bg-[#1a1b23] rounded-xl border border-gray-200 dark:border-white/5 flex flex-col overflow-hidden ${showList ? 'flex' : 'hidden md:flex'
+                }`}>
                 <div className="p-4 border-b border-gray-200 dark:border-white/5 flex justify-between items-center bg-gray-50 dark:bg-white/5">
                     <h2 className="font-bold text-lg dark:text-white">My Support Tickets</h2>
                     <button
@@ -85,9 +90,16 @@ const SupportPage = () => {
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 bg-white dark:bg-[#1a1b23] rounded-xl border border-gray-200 dark:border-white/5 flex flex-col overflow-hidden relative">
+            <div className={`w-full md:flex-1 bg-white dark:bg-[#1a1b23] rounded-xl border border-gray-200 dark:border-white/5 flex flex-col overflow-hidden relative ${!showList ? 'flex' : 'hidden md:flex'
+                }`}>
                 {isNewTicketOpen ? (
                     <div className="p-6 max-w-2xl mx-auto w-full">
+                        <button
+                            onClick={() => setIsNewTicketOpen(false)}
+                            className="md:hidden mb-4 flex items-center gap-2 text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white transition-colors"
+                        >
+                            <ArrowLeft size={20} /> Back to Tickets
+                        </button>
                         <h2 className="text-2xl font-bold mb-6 dark:text-white">Create New Support Ticket</h2>
                         <form onSubmit={handleCreateTicket} className="space-y-4">
                             <div>
@@ -133,12 +145,20 @@ const SupportPage = () => {
                     <>
                         {/* Chat Header */}
                         <div className="p-4 border-b border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-white/5 flex justify-between items-center">
-                            <div>
-                                <h2 className="text-xl font-bold dark:text-white flex items-center gap-2">
-                                    <MessageSquare className="text-teal-500" size={20} />
-                                    {selectedTicket.subject}
-                                </h2>
-                                <p className="text-xs text-gray-500 mt-1">Ticket ID: {selectedTicket._id}</p>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => setSelectedTicket(null)}
+                                    className="md:hidden p-1 -ml-2 text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10 rounded-full transition-colors"
+                                >
+                                    <ArrowLeft size={20} />
+                                </button>
+                                <div>
+                                    <h2 className="text-xl font-bold dark:text-white flex items-center gap-2">
+                                        <MessageSquare className="text-teal-500" size={20} />
+                                        {selectedTicket.subject}
+                                    </h2>
+                                    <p className="text-xs text-gray-500 mt-1">Ticket ID: {selectedTicket._id}</p>
+                                </div>
                             </div>
                             <span className={`px-3 py-1 rounded-full text-sm font-bold ${selectedTicket.status === 'OPEN' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
                                 {selectedTicket.status}
