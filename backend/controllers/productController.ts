@@ -1,12 +1,19 @@
 import { Request, Response } from 'express';
 import Product from '../models/Product';
-import SystemConfig from '../models/SystemConfig';
+// import SystemConfig from '../models/SystemConfig'; // Deprecated for shop settings
+import SystemSetting from '../models/SystemSetting';
+
+// Helper to get setting
+const getSetting = async (key: string): Promise<boolean> => {
+    const setting = await SystemSetting.findOne({ key });
+    return setting ? setting.value === true : false;
+};
 
 // Check if Shop is Enabled
 export const getShopStatus = async (req: Request, res: Response) => {
     try {
-        const config = await (SystemConfig as any).getLatest();
-        res.json({ enableShop: config.enableShop });
+        const enableShop = await getSetting('enableShop');
+        res.json({ enableShop });
     } catch (error) {
         res.status(500).json({ message: 'Error checking shop status' });
     }
@@ -16,8 +23,8 @@ export const getShopStatus = async (req: Request, res: Response) => {
 export const getShopProducts = async (req: Request, res: Response) => {
     try {
         // Validation: Check if Shop is Enabled
-        const config = await (SystemConfig as any).getLatest();
-        if (!config.enableShop) {
+        const enableShop = await getSetting('enableShop');
+        if (!enableShop) {
             return res.status(403).json({ message: 'Shop is strictly disabled' });
         }
 
@@ -31,8 +38,8 @@ export const getShopProducts = async (req: Request, res: Response) => {
 // Public: Open Shop (No Login Required)
 export const getPublicProducts = async (req: Request, res: Response) => {
     try {
-        const config = await (SystemConfig as any).getLatest();
-        if (!config.enablePublicShop) {
+        const enablePublicShop = await getSetting('enablePublicShop');
+        if (!enablePublicShop) {
             return res.status(403).json({ message: 'Public Shop is currently disabled' });
         }
 

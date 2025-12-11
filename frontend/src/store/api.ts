@@ -13,7 +13,7 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ['User', 'Wallet', 'Tree', 'Packages', 'Tickets', 'Withdrawals', 'Admin', 'SystemLogs', 'Notifications', 'Settings'],
+  tagTypes: ['User', 'Wallet', 'Tree', 'Packages', 'Tickets', 'Withdrawals', 'Admin', 'SystemLogs', 'Notifications', 'Settings', 'Products'],
   endpoints: (builder) => ({
     getTree: builder.query({
       query: (rootId) => `network/tree${rootId ? `?rootId=${rootId}` : ''}`,
@@ -307,6 +307,34 @@ export const api = createApi({
     getPublicProducts: builder.query({
       query: () => 'shop/public',
     }),
+    // Admin Product Management
+    getAllProducts: builder.query({
+      query: () => 'shop',
+      providesTags: ['Packages'], // Using Packages tag for now or should add 'Products' tag
+    }),
+    createProduct: builder.mutation({
+      query: (body) => ({
+        url: 'shop',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Packages'],
+    }),
+    updateProduct: builder.mutation({
+      query: ({ id, ...body }) => ({
+        url: `shop/${id}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Packages'],
+    }),
+    deleteProduct: builder.mutation({
+      query: (id) => ({
+        url: `shop/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Packages'],
+    }),
     createOrder: builder.mutation({
       query: (body) => ({
         url: 'orders',
@@ -370,5 +398,9 @@ export const {
   useGetSettingsQuery,
   useUpdateSettingMutation,
   useGetAllUsersQuery,
-  useUpdateUserRoleMutation
+  useUpdateUserRoleMutation,
+  useGetAllProductsQuery,
+  useCreateProductMutation,
+  useUpdateProductMutation,
+  useDeleteProductMutation
 } = api;

@@ -8,7 +8,12 @@ import {
   Menu,
   X,
   Users,
-  MessageSquare
+  MessageSquare,
+  ChevronDown,
+  ChevronRight,
+  Package,
+  CreditCard,
+  FileText
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../store/authSlice';
@@ -22,6 +27,20 @@ import { useGetShopStatusQuery } from '../store/api';
 
 const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    'Overview': true,
+    'Finance': false,
+    'Members': false,
+    'Catalog': false,
+    'System': false
+  });
+
+  const toggleGroup = (group: string) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [group]: !prev[group]
+    }));
+  };
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
@@ -90,42 +109,79 @@ const DashboardLayout = () => {
           ))}
 
           {user?.role === 'admin' && (
-            <div className="mt-8">
-              <p className="px-4 text-xs font-semibold text-amber-500/80 uppercase tracking-wider mb-2">Administration</p>
-              <div className="bg-amber-50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/10 rounded-xl p-2 mx-2">
-                <button onClick={() => navigate('/admin')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-amber-100/70 hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                  System Overview
-                </button>
-                <button onClick={() => navigate('/admin/commissions')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-amber-100/70 hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                  Run Commissions
-                </button>
-                <button onClick={() => navigate('/admin/withdrawals')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-amber-100/70 hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                  Withdrawals
-                </button>
-                <button onClick={() => navigate('/admin/kyc')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-amber-100/70 hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                  KYC Requests
-                </button>
-                <button onClick={() => navigate('/admin/support')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-amber-100/70 hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                  Support Tickets
-                </button>
-                <button onClick={() => navigate('/admin/users')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-amber-100/70 hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                  User Management
-                </button>
-                <button onClick={() => navigate('/admin/packages')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-amber-100/70 hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                  Packages
-                </button>
-                <div className="h-px bg-amber-200 dark:bg-amber-500/20 my-1 mx-2"></div>
-                <button onClick={() => navigate('/admin/settings')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-amber-100/70 hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors">
-                  <Settings size={16} />
-                  System Settings
-                </button>
+            <div className="mt-8 space-y-4">
+              <p className="px-4 text-xs font-semibold text-amber-500/80 uppercase tracking-wider">Administration</p>
+
+              {/* Admin Groups */}
+              <div className="space-y-1 mx-2">
+                {[
+                  {
+                    title: 'Overview',
+                    items: [
+                      { icon: LayoutDashboard, label: 'System Overview', path: '/admin' }
+                    ]
+                  },
+                  {
+                    title: 'Finance',
+                    items: [
+                      { icon: CreditCard, label: 'Run Commissions', path: '/admin/commissions' },
+                      { icon: Wallet, label: 'Withdrawals', path: '/admin/withdrawals' }
+                    ]
+                  },
+                  {
+                    title: 'Members',
+                    items: [
+                      { icon: Users, label: 'User Management', path: '/admin/users' },
+                      { icon: FileText, label: 'KYC Requests', path: '/admin/kyc' },
+                      { icon: MessageSquare, label: 'Support Tickets', path: '/admin/support' }
+                    ]
+                  },
+                  {
+                    title: 'Catalog',
+                    items: [
+                      { icon: Package, label: 'Packages', path: '/admin/packages' },
+                      ...(shopStatus?.enableShop ? [{ icon: ShoppingBag, label: 'Products', path: '/admin/products' }] : [])
+                    ]
+                  },
+                  {
+                    title: 'System',
+                    items: [
+                      { icon: Settings, label: 'System Settings', path: '/admin/settings' }
+                    ]
+                  }
+                ].map((group) => (
+                  <div key={group.title} className="rounded-xl overflow-hidden bg-amber-50/50 dark:bg-amber-500/5 border border-amber-200/50 dark:border-amber-500/10">
+                    <button
+                      onClick={() => toggleGroup(group.title)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-amber-700 dark:text-amber-400 hover:bg-amber-100/50 dark:hover:bg-amber-500/10 transition-colors"
+                    >
+                      <span>{group.title}</span>
+                      {expandedGroups[group.title] ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                    </button>
+
+                    {expandedGroups[group.title] && (
+                      <div className="p-1 space-y-1">
+                        {group.items.map((item) => (
+                          <button
+                            key={item.path}
+                            onClick={() => {
+                              navigate(item.path);
+                              setIsSidebarOpen(false);
+                            }}
+                            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${location.pathname === item.path
+                              ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-900 dark:text-amber-100'
+                              : 'text-gray-600 dark:text-amber-100/60 hover:bg-amber-100 dark:hover:bg-amber-500/10'
+                              }`}
+                          >
+                            {/*  <item.icon size={16} className={location.pathname === item.path ? 'text-amber-600 dark:text-amber-400' : 'opacity-70'} /> */}
+                            <div className={`w-1.5 h-1.5 rounded-full ${location.pathname === item.path ? 'bg-amber-500' : 'bg-gray-300 dark:bg-white/20'}`}></div>
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           )}
