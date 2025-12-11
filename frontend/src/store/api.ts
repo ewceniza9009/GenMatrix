@@ -98,6 +98,22 @@ export const api = createApi({
     }),
 
     // Package Management
+    getAllUsers: builder.query({
+      query: (params) => {
+        const qs = new URLSearchParams(params).toString();
+        return `admin/users?${qs}`;
+      },
+      providesTags: ['Admin']
+    }),
+    updateUserRole: builder.mutation({
+      query: (body) => ({
+        url: 'admin/users/role',
+        method: 'PUT',
+        body
+      }),
+      invalidatesTags: ['Admin']
+    }),
+
     getPackages: builder.query({
       query: (isAdmin) => `packages${isAdmin ? '?all=true' : ''}`,
       providesTags: ['Packages'],
@@ -352,5 +368,7 @@ export const {
   useCreateOrderMutation,
   useGetMyOrdersQuery,
   useGetSettingsQuery,
-  useUpdateSettingMutation
+  useUpdateSettingMutation,
+  useGetAllUsersQuery,
+  useUpdateUserRoleMutation
 } = api;

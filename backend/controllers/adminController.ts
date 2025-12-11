@@ -187,3 +187,63 @@ export const runCommissionRun = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Commission Run Failed' });
   }
 };
+
+// User Management
+export const getAllUsers = async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const search = req.query.search as string;
+
+    const query: any = {};
+    if (search) {
+      query.$or = [
+        { username: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { role: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const total = await User.countDocuments(query);
+    const users = await User.find(query)
+      .select('-password') // Exclude password
+      .sort({ enrollmentDate: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json({
+      users,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching users' });
+  }
+};
+
+export const updateUserRole = async (req: Request, res: Response) => {
+  try {
+    const { userId, role } = req.body;
+
+    if (!['user', 'admin'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.role = role;
+    await user.save();
+
+    await SystemLog.create({
+      action: 'USER_ROLE_UPDATE',
+      details: `Updated role for ${user.username} to ${role}`,
+      type: 'WARNING'
+    });
+
+    res.json({ message: `User role updated to ${role}` });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating user role' });
+  }
+};
