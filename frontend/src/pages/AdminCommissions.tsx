@@ -32,7 +32,8 @@ const AdminCommissions = () => {
             sortBy,
             order
         });
-        window.location.href = `http://localhost:5000/api/v1/admin/commissions?${params.toString()}`;
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1/';
+        window.location.href = `${baseUrl}admin/commissions?${params.toString()}`;
     };
 
     if (isLoading) return <div className="text-gray-500 dark:text-gray-300 p-6">Loading commission history...</div>;

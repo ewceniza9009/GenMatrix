@@ -39,7 +39,8 @@ const WalletPage = () => {
 
   const handleExportCSV = () => {
     const params = new URLSearchParams({ format: 'csv', search, sortBy, order });
-    window.location.href = `http://localhost:5000/api/v1/wallet?${params.toString()}`;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1/';
+    window.location.href = `${baseUrl}wallet?${params.toString()}`;
   };
 
   const renderSortIcon = (field: string) => {

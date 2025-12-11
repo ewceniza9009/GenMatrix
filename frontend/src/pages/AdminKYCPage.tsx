@@ -12,7 +12,11 @@ const AdminKYCPage = () => {
     // Helper to get full URL or handle base64 if we used that (we used path)
     const getDocUrl = (path: string) => {
         // Assuming server serves 'uploads' statically
-        return `http://localhost:5000/${path}`;
+        // Base URL usually ends with /api/v1/, but uploads are at root /uploads
+        // So we need to strip /api/v1/ if present, or just use the hostname
+        const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1/';
+        const rootUrl = apiBase.replace('/api/v1/', '');
+        return `${rootUrl}${path.startsWith('/') ? '' : '/'}${path}`;
     };
 
     const handleAction = async (userId: string, status: 'approved' | 'rejected') => {

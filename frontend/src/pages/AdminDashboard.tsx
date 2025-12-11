@@ -37,7 +37,8 @@ const AdminDashboard = () => {
 
   const handleExportCSV = () => {
     const params = new URLSearchParams({ format: 'csv', search, sortBy, order });
-    window.location.href = `http://localhost:5000/api/v1/admin/logs?${params.toString()}`;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1/';
+    window.location.href = `${baseUrl}admin/logs?${params.toString()}`;
   };
 
   const handleSort = (field: string) => {
