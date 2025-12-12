@@ -5,15 +5,29 @@ import { DollarSign, Users, TrendingUp, Activity, ChevronUp, ChevronDown, UserCh
 
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { useGetUplineQuery, useGetWalletQuery, useGetTreeQuery, useGetEarningsAnalyticsQuery, useGetGrowthAnalyticsQuery } from '../store/api';
+import { useGetWalletQuery, useGetTreeQuery, useGetEarningsAnalyticsQuery, useGetGrowthAnalyticsQuery, useGetMemberDetailsQuery } from '../store/api';
 
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 const DashboardHome = () => {
   const user = useSelector((state: RootState) => state.auth.user);
 
-  const { data: uplineData, isLoading: uplineLoading } = useGetUplineQuery(user?.id, { skip: !user?.id });
-  const sponsor = uplineData?.sponsor;
+  // Fetch Sponsor Details
+  const { data: sponsorDetails, isLoading: sponsorLoading } = useGetMemberDetailsQuery(user?.sponsorId, { skip: !user?.sponsorId });
+
+
+  // Fetch Current User Details (Real-time Stats)
+  const { data: myDetails, isLoading: myDetailsLoading } = useGetMemberDetailsQuery(user?.id, { skip: !user?.id, pollingInterval: 30000 });
+
+  // Resolve Sponsor Name (Prefer fresh data from myDetails, fallback to separate query)
+  // @ts-ignore
+  const freshSponsorName = myDetails?.profile?.sponsor?.username;
+  const sponsorName = freshSponsorName || sponsorDetails?.profile?.username;
+
+  // Use fresh data if available, fallback to Redux state
+  const currentRank = myDetails?.profile?.rank || user?.rank || 'Member';
+  const leftPV = myDetails?.stats?.currentLeftPV ?? user?.currentLeftPV ?? 0;
+  const rightPV = myDetails?.stats?.currentRightPV ?? user?.currentRightPV ?? 0;
 
   // Fetch Tree Data for Dashboard
   const { data: treeData, isLoading: treeLoading, error: treeError } = useGetTreeQuery(user?.id);
@@ -61,21 +75,21 @@ const DashboardHome = () => {
             />
             <StatsCard
               title="Sponsor"
-              value={uplineLoading ? '...' : (sponsor?.username || 'Root Account')}
+              value={(sponsorLoading || myDetailsLoading) && !sponsorName ? '...' : (sponsorName || 'Root Account')}
               icon={UserCheck}
-              trend={sponsor ? 'Active' : 'System Head'}
+              trend={sponsorName ? 'Active' : 'System Head'}
               trendUp={true}
             />
             <StatsCard
               title="Left/Right Vol"
-              value={`${user?.currentLeftPV || 0} / ${user?.currentRightPV || 0}`}
+              value={`${leftPV} / ${rightPV}`}
               icon={Activity}
               trend="Live"
               trendUp={true}
             />
             <StatsCard
               title="Current Rank"
-              value={user?.role === 'admin' ? 'Admin' : 'Member'}
+              value={user?.role === 'admin' ? 'Admin' : currentRank}
               icon={TrendingUp}
               trend="Upgrade Eligible"
               trendUp={true}

@@ -33,6 +33,9 @@ interface User {
   enrollmentDate: string;
   spilloverPreference?: string;
   enableHoldingTank?: 'system' | 'enabled' | 'disabled';
+  sponsorId?: string;
+  parentId?: string;
+  rank?: string;
 }
 
 interface AuthState {

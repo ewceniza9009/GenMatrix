@@ -190,7 +190,12 @@ export const login = async (req: Request, res: Response) => {
         phone: user.phone,
         address: user.address,
         spilloverPreference: user.spilloverPreference,
-        enableHoldingTank: user.enableHoldingTank
+        enableHoldingTank: user.enableHoldingTank,
+        sponsorId: user.sponsorId,
+        parentId: user.parentId,
+        rank: user.rank,
+        currentLeftPV: user.currentLeftPV,
+        currentRightPV: user.currentRightPV
       }
     });
 

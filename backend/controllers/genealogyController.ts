@@ -293,7 +293,8 @@ export const getMemberDetails = async (req: Request, res: Response) => {
         country: member.address?.country,
         enrollmentDate: member.enrollmentDate,
         profileImage: member.profileImage,
-        active: member.isActive
+        active: member.isActive,
+        sponsor: member.sponsorId ? await User.findById(member.sponsorId).select('username _id') : null
       },
       stats: {
         currentLeftPV: member.currentLeftPV,
