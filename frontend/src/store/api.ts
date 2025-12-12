@@ -65,7 +65,8 @@ export const api = createApi({
     }),
     getSystemLogs: builder.query({
       query: (params) => {
-        const qs = new URLSearchParams(params).toString();
+        const cleaned = Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== ''));
+        const qs = new URLSearchParams(cleaned as any).toString();
         return `admin/logs?${qs}`;
       },
       providesTags: ['SystemLogs']
@@ -104,7 +105,8 @@ export const api = createApi({
     // Package Management
     getAllUsers: builder.query({
       query: (params) => {
-        const qs = new URLSearchParams(params).toString();
+        const cleaned = Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== ''));
+        const qs = new URLSearchParams(cleaned as any).toString();
         return `admin/users?${qs}`;
       },
       providesTags: ['Admin']
@@ -210,7 +212,8 @@ export const api = createApi({
     // Admin Withdrawals
     getPendingWithdrawals: builder.query({
       query: (params) => {
-        const qs = new URLSearchParams(params).toString();
+        const cleaned = Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== ''));
+        const qs = new URLSearchParams(cleaned as any).toString();
         return `wallet/admin/withdrawals?${qs}`;
       },
       providesTags: ['Withdrawals'],
@@ -318,7 +321,8 @@ export const api = createApi({
     // Admin Product Management
     getAllProducts: builder.query({
       query: (params) => {
-        const qs = new URLSearchParams(params).toString();
+        const cleaned = Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== ''));
+        const qs = new URLSearchParams(cleaned as any).toString();
         return `shop?${qs}`;
       },
       providesTags: ['Packages'], // Using Packages tag for now or should add 'Products' tag
@@ -368,7 +372,8 @@ export const api = createApi({
     }),
     getAllOrders: builder.query({
       query: (params) => {
-        const qs = new URLSearchParams(params).toString();
+        const cleaned = Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== ''));
+        const qs = new URLSearchParams(cleaned as any).toString();
         return `orders/admin/all?${qs}`;
       },
       providesTags: ['Admin']
