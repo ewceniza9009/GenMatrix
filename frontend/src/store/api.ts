@@ -78,6 +78,10 @@ export const api = createApi({
       },
       providesTags: ['Admin'],
     }),
+    getAdminStats: builder.query({
+      query: () => 'admin/stats',
+      providesTags: ['Admin'],
+    }),
     runCommissions: builder.mutation({
       query: () => ({
         url: 'admin/run-commissions',
@@ -120,6 +124,7 @@ export const api = createApi({
     }),
     getShopStatus: builder.query({
       query: () => 'shop/status',
+      providesTags: ['Settings'],
     }),
     createPackage: builder.mutation({
       query: (body) => ({
@@ -361,6 +366,7 @@ export const {
   useRunCommissionsMutation,
   useGetSystemLogsQuery,
   useGetAdminCommissionsQuery,
+  useGetAdminStatsQuery,
   useGetConfigQuery,
   useUpdateConfigMutation,
   useGetHoldingTankQuery,

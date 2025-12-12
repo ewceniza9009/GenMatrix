@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import StatsCard from '../components/StatsCard';
 import { DollarSign, Users, PlayCircle, Activity, AlertCircle, CheckCircle, Info, ArrowUpDown } from 'lucide-react';
-import { useRunCommissionsMutation, useGetSystemLogsQuery } from '../store/api';
+import { useRunCommissionsMutation, useGetSystemLogsQuery, useGetAdminStatsQuery } from '../store/api';
 
 const AdminDashboard = () => {
   const [runCommissions, { isLoading: processing }] = useRunCommissionsMutation();
+  const { data: statsData, isLoading: statsLoading } = useGetAdminStatsQuery(undefined, { pollingInterval: 30000 });
+
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState('timestamp');
@@ -72,16 +74,16 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatsCard
           title="Total System Payout"
-          value="$124,500"
+          value={statsLoading ? "..." : `$${(statsData?.totalCommissions || 0).toLocaleString()}`}
           icon={DollarSign}
           trend="All Time"
           trendUp={true}
         />
         <StatsCard
           title="Total Users"
-          value="1,240"
+          value={statsLoading ? "..." : (statsData?.totalUsers || 0).toLocaleString()}
           icon={Users}
-          trend="+45 today"
+          trend="+ Active"
           trendUp={true}
         />
         <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-slate-700 flex flex-col justify-between">
