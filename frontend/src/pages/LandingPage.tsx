@@ -13,23 +13,24 @@ const LandingPage = () => {
             </div>
 
             {/* Navbar */}
-            <nav className="relative z-50 px-6 py-6 flex justify-between items-center max-w-7xl mx-auto">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-500/20">
+            <nav className="relative z-50 px-6 py-6 max-w-7xl mx-auto flex items-center justify-between">
+                {/* Left Side (Empty for balance or could be social) */}
+                <div className="hidden md:block w-32"></div>
+
+                {/* Centered Branding */}
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-500/20 backdrop-blur-md">
                         <span className="font-bold text-white text-xl">GM</span>
                     </div>
                     <span className="text-2xl font-bold tracking-tight text-white">Gen<span className="text-teal-400">Matrix</span><span className="text-gold-500">.</span></span>
                 </div>
-                <div className="hidden md:flex gap-8 text-sm font-medium text-slate-300">
-                    <a href="#features" className="hover:text-white transition-colors">Solutions</a>
-                    <a href="#analytics" className="hover:text-white transition-colors">Analytics</a>
-                    <a href="#security" className="hover:text-white transition-colors">Security</a>
-                </div>
-                <div className="flex gap-4">
-                    <Link to="/login" className="px-6 py-2.5 rounded-lg text-sm font-semibold text-slate-200 hover:text-white transition-colors">
+
+                {/* Right Actions */}
+                <div className="flex gap-4 ml-auto md:ml-0">
+                    <Link to="/login" className="px-6 py-2.5 rounded-lg text-sm font-semibold text-slate-200 hover:text-white transition-colors hover:bg-white/5">
                         Log In
                     </Link>
-                    <Link to="/register" className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white text-sm font-semibold shadow-lg shadow-teal-500/25 transition-all hover:scale-105">
+                    <Link to="/register" className="px-6 py-2.5 rounded-lg bg-teal-500 hover:bg-teal-400 text-white text-sm font-bold shadow-lg shadow-teal-500/25 transition-all hover:scale-105">
                         Get Started
                     </Link>
                 </div>
@@ -68,10 +69,10 @@ const LandingPage = () => {
             <div className="border-y border-white/5 bg-white/[0.02] backdrop-blur-sm">
                 <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
                     {[
-                        { label: 'Network Uptime', value: '99.99%', icon: Activity },
-                        { label: 'Active Members', value: '50k+', icon: Users },
-                        { label: 'Global Reach', value: '24 Countries', icon: Globe },
-                        { label: 'Transactions', value: '$25M+', icon: BarChart3 },
+                        { label: 'Commission Payouts', value: 'Instant', icon: Activity },
+                        { label: 'Security Standard', value: 'AES-256', icon: ShieldCheck },
+                        { label: 'Supported Currencies', value: '150+', icon: Globe },
+                        { label: 'System Reliability', value: '99.9%', icon: BarChart3 },
                     ].map((stat, i) => (
                         <div key={i} className="flex items-center gap-4 justify-center md:justify-start">
                             <div className="p-3 rounded-lg bg-teal-500/10 text-teal-400">
