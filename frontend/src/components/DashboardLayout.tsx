@@ -54,15 +54,15 @@ const DashboardLayout = () => {
   };
 
   const navItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { icon: Users, label: 'My Network', path: '/network' },
-    { icon: Wallet, label: 'Wallet', path: '/wallet' },
-    ...(shopStatus?.enableShop ? [{ icon: ShoppingBag, label: 'Shop', path: '/shop' }] : []),
-    { icon: MessageSquare, label: 'Support', path: '/support' },
-    { icon: Settings, label: 'Settings', path: '/settings' },
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+    { icon: Users, label: 'My Network', path: '/dashboard/network' },
+    { icon: Wallet, label: 'Wallet', path: '/dashboard/wallet' },
+    ...(shopStatus?.enableShop ? [{ icon: ShoppingBag, label: 'Shop', path: '/dashboard/shop' }] : []),
+    { icon: MessageSquare, label: 'Support', path: '/dashboard/support' },
+    { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
   ].filter(item => {
     if (user?.status === 'pending_payment') {
-      return ['/shop', '/wallet'].includes(item.path);
+      return ['/dashboard/shop', '/dashboard/wallet'].includes(item.path);
     }
     return true;
   });
@@ -134,36 +134,36 @@ const DashboardLayout = () => {
                   {
                     title: 'Overview',
                     items: [
-                      { icon: LayoutDashboard, label: 'System Overview', path: '/admin' }
+                      { icon: LayoutDashboard, label: 'System Overview', path: '/dashboard/admin' }
                     ]
                   },
                   {
                     title: 'Finance',
                     items: [
-                      { icon: CreditCard, label: 'Run Commissions', path: '/admin/commissions' },
-                      { icon: ShoppingBag, label: 'Order Management', path: '/admin/orders' },
-                      { icon: Wallet, label: 'Withdrawals', path: '/admin/withdrawals' }
+                      { icon: CreditCard, label: 'Run Commissions', path: '/dashboard/admin/commissions' },
+                      { icon: ShoppingBag, label: 'Order Management', path: '/dashboard/admin/orders' },
+                      { icon: Wallet, label: 'Withdrawals', path: '/dashboard/admin/withdrawals' }
                     ]
                   },
                   {
                     title: 'Members',
                     items: [
-                      { icon: Users, label: 'User Management', path: '/admin/users' },
-                      { icon: FileText, label: 'KYC Requests', path: '/admin/kyc' },
-                      { icon: MessageSquare, label: 'Support Tickets', path: '/admin/support' }
+                      { icon: Users, label: 'User Management', path: '/dashboard/admin/users' },
+                      { icon: FileText, label: 'KYC Requests', path: '/dashboard/admin/kyc' },
+                      { icon: MessageSquare, label: 'Support Tickets', path: '/dashboard/admin/support' }
                     ]
                   },
                   {
                     title: 'Catalog',
                     items: [
-                      { icon: Package, label: 'Packages', path: '/admin/packages' },
-                      ...(shopStatus?.enableShop ? [{ icon: ShoppingBag, label: 'Products', path: '/admin/products' }] : [])
+                      { icon: Package, label: 'Packages', path: '/dashboard/admin/packages' },
+                      ...(shopStatus?.enableShop ? [{ icon: ShoppingBag, label: 'Products', path: '/dashboard/admin/products' }] : [])
                     ]
                   },
                   {
                     title: 'System',
                     items: [
-                      { icon: Settings, label: 'System Settings', path: '/admin/settings' }
+                      { icon: Settings, label: 'System Settings', path: '/dashboard/admin/settings' }
                     ]
                   }
                 ].map((group) => (

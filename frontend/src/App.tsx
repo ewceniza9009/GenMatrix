@@ -7,10 +7,12 @@ import DashboardLayout from './components/DashboardLayout';
 import PendingPaymentGuard from './components/PendingPaymentGuard';
 
 // Pages
+// Pages
 import DashboardHome from './pages/DashboardHome';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import PublicShopPage from './pages/PublicShopPage';
+import LandingPage from './pages/LandingPage'; // Import New Landing Page
 import EnrollMember from './pages/EnrollMember';
 import WalletPage from './pages/Wallet';
 import ShopPage from './pages/ShopPage';
@@ -40,13 +42,14 @@ function App() {
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         {/* Public Routes */}
+        <Route path="/" element={<LandingPage />} /> {/* Root is now Landing */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/store" element={<PublicShopPage />} />
 
         {/* Protected Dashboard Routes */}
         <Route
-          path="/"
+          path="/dashboard"
           element={
             <PrivateRoute>
               <PendingPaymentGuard>
@@ -72,10 +75,18 @@ function App() {
           <Route path="admin/users" element={<AdminUsersPage />} />
           <Route path="admin/kyc" element={<AdminKYCPage />} />
           <Route path="admin/settings" element={<AdminSettingsPage />} />
-          <Route path="admin/settings" element={<AdminSettingsPage />} />
           <Route path="admin/products" element={<AdminProductsPage />} />
           <Route path="admin/orders" element={<AdminOrdersPage />} />
         </Route>
+
+        {/* Redirect Legacy Routes */}
+        <Route path="/network" element={<Navigate to="/dashboard/network" replace />} />
+        <Route path="/enroll" element={<Navigate to="/dashboard/enroll" replace />} />
+        <Route path="/wallet" element={<Navigate to="/dashboard/wallet" replace />} />
+        <Route path="/shop" element={<Navigate to="/dashboard/shop" replace />} />
+        <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
+        <Route path="/support" element={<Navigate to="/dashboard/support" replace />} />
+        <Route path="/admin/*" element={<Navigate to="/dashboard/admin" replace />} />
       </Routes>
     </Router>
   );

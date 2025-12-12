@@ -15,18 +15,26 @@ const Login = () => {
     try {
       const user = await login(formData).unwrap();
       dispatch(setCredentials(user));
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       console.error('Failed to login', err);
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-[#0f1014] relative overflow-hidden font-sans">
+    <div className="flex min-h-screen bg-midnight-950 relative overflow-hidden font-sans">
       {/* Background Ambience */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-teal-500/20 rounded-full blur-[120px] animate-pulse-slow"></div>
-        <div className="absolute top-[40%] -right-[10%] w-[40%] h-[60%] bg-purple-500/10 rounded-full blur-[120px]"></div>
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-teal-500/10 rounded-full blur-[120px] animate-pulse-slow"></div>
+        <div className="absolute top-[40%] -right-[10%] w-[40%] h-[60%] bg-gold-500/5 rounded-full blur-[120px]"></div>
+      </div>
+
+      {/* Back to Home Link */}
+      <div className="absolute top-6 left-6 z-20">
+        <Link to="/" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm font-medium">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          Back to Home
+        </Link>
       </div>
 
       <div className="md:flex w-full max-w-5xl mx-auto z-10 my-auto p-4">

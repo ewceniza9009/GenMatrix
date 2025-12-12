@@ -31,6 +31,14 @@ const Register = () => {
         <div className="absolute top-[40%] -right-[10%] w-[40%] h-[60%] bg-purple-500/10 rounded-full blur-[120px]"></div>
       </div>
 
+      {/* Back to Home Link */}
+      <div className="absolute top-6 left-6 z-20">
+        <Link to="/" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm font-medium">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          Back to Home
+        </Link>
+      </div>
+
       <div className="w-full max-w-7xl mx-auto z-10 my-auto p-4 grid md:grid-cols-2 gap-12 items-center">
         {/* Left Side: Brand Area & Packages */}
         <div className="text-white space-y-8">

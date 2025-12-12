@@ -13,32 +13,37 @@
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: #0f172a; /* Slate 900 for dark mode track */
+  background: #0f172a;
+  /* Slate 900 for dark mode track */
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1; /* Slate 300 */
+  background-color: #cbd5e1;
+  /* Slate 300 */
   border-radius: 20px;
   border: 3px solid transparent;
   background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #94a3b8; /* Slate 400 */
+  background-color: #94a3b8;
+  /* Slate 400 */
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background-color: #334155; /* Slate 700 */
+  background-color: #334155;
+  /* Slate 700 */
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background-color: #475569; /* Slate 600 */
+  background-color: #475569;
+  /* Slate 600 */
 }
 
 /* Firefox Support */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: #334155 transparent;
 }
 
 .dark * {
@@ -47,6 +52,33 @@
 
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  @apply bg-gray-50 text-gray-900 dark:bg-slate-950 dark:text-gray-100 transition-colors duration-300;
+  font-family: 'Outfit', sans-serif;
+  @apply bg-midnight-950 text-slate-200 antialiased selection:bg-gold-500/30 selection:text-gold-200;
+  background-image:
+    radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.08) 0%, transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(245, 158, 11, 0.05) 0%, transparent 25%);
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl;
+  }
+
+  .glass-button {
+    @apply bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-md transition-all duration-300;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(to right, theme('colors.gold.400'), theme('colors.yellow.200'), theme('colors.gold.500'));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .text-gradient-primary {
+    background: linear-gradient(to right, theme('colors.teal.400'), theme('colors.emerald.400'));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 }
