@@ -79,16 +79,28 @@ const PersonalSettings = () => {
                         </span>
                     </div>
                 </div>
-                <button
-                    onClick={() => setIsEditing(!isEditing)}
-                    className="text-slate-400 hover:text-teal-500 transition-colors bg-slate-50 dark:bg-white/5 px-3 py-1.5 rounded-lg text-sm font-medium"
-                    type="button"
-                >
-                    {isEditing ? 'Cancel' : 'Edit Profile'}
-                </button>
+                <div className="flex gap-2">
+                    {isEditing && (
+                        <button
+                            type="submit"
+                            form="personal-form"
+                            disabled={isLoading}
+                            className="bg-teal-500 hover:bg-teal-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                        >
+                            <Save size={16} /> Save
+                        </button>
+                    )}
+                    <button
+                        onClick={() => setIsEditing(!isEditing)}
+                        className="text-slate-400 hover:text-teal-500 transition-colors bg-slate-50 dark:bg-white/5 px-3 py-1.5 rounded-lg text-sm font-medium"
+                        type="button"
+                    >
+                        {isEditing ? 'Cancel' : 'Edit Profile'}
+                    </button>
+                </div>
             </div>
 
-            <form onSubmit={handleSave} className="space-y-6">
+            <form id="personal-form" onSubmit={handleSave} className="space-y-6">
 
                 {/* Personal Information Section */}
                 <div className="space-y-4">
@@ -211,12 +223,6 @@ const PersonalSettings = () => {
                                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg p-2 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 outline-none"
                                 />
                             </div>
-                            <button
-                                disabled={isLoading}
-                                className="w-full mt-4 bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 rounded-xl transition flex items-center justify-center gap-2"
-                            >
-                                <Save size={18} /> Save Changes
-                            </button>
                         </>
                     )}
 

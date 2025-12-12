@@ -93,7 +93,7 @@ const Settings = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 pb-12 animate-fade-in-up">
+    <div className="w-full mx-auto space-y-6 md:space-y-8 pb-12 animate-fade-in-up">
       <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
         <div className="bg-teal-500/10 p-3 rounded-2xl">
           <SettingsIcon size={32} className="text-teal-500" />
@@ -131,7 +131,7 @@ const Settings = () => {
         {activeTab === 'security' && <SecuritySettings />}
 
         {activeTab === 'network' && (
-          <div className="bg-white dark:bg-slate-800 rounded-3xl border border-gray-100 dark:border-slate-700 p-4 md:p-6 shadow-xl shadow-slate-200/50 dark:shadow-none max-w-2xl">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl border border-gray-100 dark:border-slate-700 p-4 md:p-6 shadow-xl shadow-slate-200/50 dark:shadow-none max-w-4xl">
             <div className="flex items-center gap-2 mb-6">
               <div className="bg-teal-50 dark:bg-teal-500/20 p-2 rounded-lg">
                 <Network className="text-teal-500" size={24} />
@@ -187,14 +187,23 @@ const Settings = () => {
             {/* Decorative Background - Dark Mode Only */}
             <div className="hidden dark:block absolute -top-24 -right-24 w-64 h-64 bg-teal-500/20 rounded-full blur-3xl"></div>
 
-            <div className="flex items-center gap-3 mb-6 md:mb-8 relative z-10">
-              <div className="bg-teal-50 dark:bg-teal-500/20 p-2 rounded-lg">
-                <Sliders className="text-teal-600 dark:text-teal-400" size={24} />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-8 relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="bg-teal-50 dark:bg-teal-500/20 p-2 rounded-lg">
+                  <Sliders className="text-teal-600 dark:text-teal-400" size={24} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">System Rules</h2>
+                  <p className="text-gray-500 dark:text-slate-400 text-sm">Control the financial and network engine.</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">System Rules</h2>
-                <p className="text-gray-500 dark:text-slate-400 text-sm">Control the financial and network engine.</p>
-              </div>
+              <button
+                type="button"
+                onClick={(e) => handleSaveAdmin(e as any)}
+                className="w-full md:w-auto px-6 py-2.5 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-teal-500/20 active:scale-[0.99] transition-transform flex items-center justify-center gap-2 text-sm"
+              >
+                <Shield size={18} /> Update Rules
+              </button>
             </div>
 
             <form onSubmit={handleSaveAdmin} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 relative z-10">
@@ -289,11 +298,7 @@ const Settings = () => {
                 />
               </div>
 
-              <div className="md:col-span-2 pt-6">
-                <button className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-teal-500/20 active:scale-[0.99] transition-transform flex items-center justify-center gap-3">
-                  <Shield size={20} /> Update System Rules
-                </button>
-              </div>
+              <div className="hidden"></div>
             </form>
           </motion.div>
         )}
