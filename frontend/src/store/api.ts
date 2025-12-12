@@ -208,8 +208,11 @@ export const api = createApi({
     }),
 
     // Admin Withdrawals
-    getPendingWithdrawals: builder.query<any[], void>({
-      query: () => 'wallet/admin/withdrawals',
+    getPendingWithdrawals: builder.query({
+      query: (params) => {
+        const qs = new URLSearchParams(params).toString();
+        return `wallet/admin/withdrawals?${qs}`;
+      },
       providesTags: ['Withdrawals'],
     }),
     processWithdrawal: builder.mutation({
@@ -314,7 +317,10 @@ export const api = createApi({
     }),
     // Admin Product Management
     getAllProducts: builder.query({
-      query: () => 'shop',
+      query: (params) => {
+        const qs = new URLSearchParams(params).toString();
+        return `shop?${qs}`;
+      },
       providesTags: ['Packages'], // Using Packages tag for now or should add 'Products' tag
     }),
     createProduct: builder.mutation({

@@ -3,6 +3,7 @@ import Wallet from '../models/Wallet';
 import { AuthRequest } from '../middleware/authMiddleware';
 import { createNotification } from './notificationController';
 import { getSettingValue } from './settingsController';
+import { getPaginationParams } from '../utils/queryHelpers';
 
 export const getMyWallet = async (req: AuthRequest, res: Response) => {
   try {
@@ -154,31 +155,91 @@ export const requestWithdrawal = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Admin: Get all pending withdrawals
+// Admin: Get all pending withdrawals (Paginated)
 export const getPendingWithdrawals = async (req: Request, res: Response) => {
   try {
-    const wallets = await Wallet.find({
-      'transactions.status': 'PENDING',
-      'transactions.type': 'WITHDRAWAL'
-    }).populate('userId', 'username email');
+    const { page, limit, skip } = getPaginationParams(req);
+    // Sort logic handled in aggregation pipeline manually or via helpers if adapted
+    // Default sort by date desc
+    const sortParams = req.query.sortOrder === 'asc' ? 1 : -1;
 
-    // Flatten to list of pending txs with user info
-    const pendingRequests = [];
-    for (const wallet of wallets) {
-      for (const tx of wallet.transactions) {
-        if (tx.status === 'PENDING' && tx.type === 'WITHDRAWAL') {
-          pendingRequests.push({
-            // @ts-ignore
-            user: wallet.userId,
-            transaction: tx,
-            walletId: wallet._id
-          });
+    const pipeline: any[] = [
+      // 1. Unwind transactions to treat them as individual documents
+      { $unwind: '$transactions' },
+      // 2. Match only pending withdrawals
+      {
+        $match: {
+          'transactions.status': 'PENDING',
+          'transactions.type': 'WITHDRAWAL'
+        }
+      },
+      // 3. Lookup User Info
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'user'
+        }
+      },
+      { $unwind: '$user' },
+      // 4. Project cleaner structure and support search
+      {
+        $project: {
+          _id: 0,
+          walletId: '$_id',
+          transaction: '$transactions',
+          user: {
+            _id: '$user._id',
+            username: '$user.username',
+            email: '$user.email'
+          },
+          // Hoisted fields for searching/sorting
+          amount: '$transactions.amount',
+          date: '$transactions.date',
+          username: '$user.username'
         }
       }
+    ];
+
+    // 5. Search Filter
+    const search = req.query.search as string;
+    if (search) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { username: { $regex: search, $options: 'i' } },
+            { 'user.email': { $regex: search, $options: 'i' } }
+          ]
+        }
+      });
     }
 
-    res.json(pendingRequests);
+    // 6. Pagination Facet
+    pipeline.push({
+      $facet: {
+        metadata: [{ $count: 'total' }],
+        data: [
+          { $sort: { date: sortParams } },
+          { $skip: skip },
+          { $limit: limit }
+        ]
+      }
+    });
+
+    const result = await Wallet.aggregate(pipeline);
+    const data = result[0].data;
+    const total = result[0].metadata[0]?.total || 0;
+
+    res.json({
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    });
+
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 };

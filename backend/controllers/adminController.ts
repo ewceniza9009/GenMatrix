@@ -3,6 +3,7 @@ import User from '../models/User';
 import Commission from '../models/Commission';
 import SystemLog from '../models/SystemLog';
 import { CommissionEngine } from '../services/CommissionEngine';
+import { getPaginationParams, buildSort, buildSearch } from '../utils/queryHelpers';
 
 export const getSystemStats = async (req: Request, res: Response) => {
   try {
@@ -191,28 +192,21 @@ export const runCommissionRun = async (req: Request, res: Response) => {
 // User Management
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
-    const search = req.query.search as string;
+    const { page, limit, skip } = getPaginationParams(req);
+    const sort = buildSort(req, 'enrollmentDate', -1);
+    const search = buildSearch(req, ['username', 'email', 'firstName', 'lastName', 'role']);
 
-    const query: any = {};
-    if (search) {
-      query.$or = [
-        { username: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { role: { $regex: search, $options: 'i' } }
-      ];
-    }
+    const query: any = { ...search };
 
     const total = await User.countDocuments(query);
     const users = await User.find(query)
       .select('-password') // Exclude password
-      .sort({ enrollmentDate: -1 })
-      .skip((page - 1) * limit)
+      .sort(sort as any)
+      .skip(skip)
       .limit(limit);
 
     res.json({
-      users,
+      data: users, // Standardized to 'data' instead of 'users' for DataTable consistency
       total,
       page,
       totalPages: Math.ceil(total / limit)

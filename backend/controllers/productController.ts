@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { getPaginationParams, buildSort, buildSearch } from '../utils/queryHelpers';
 import Product from '../models/Product';
 // import SystemConfig from '../models/SystemConfig'; // Deprecated for shop settings
 import SystemSetting from '../models/SystemSetting';
@@ -53,8 +54,24 @@ export const getPublicProducts = async (req: Request, res: Response) => {
 // Admin: Get All Products
 export const getAllProducts = async (req: Request, res: Response) => {
     try {
-        const products = await Product.find({}).sort({ createdAt: -1 });
-        res.json(products);
+        const { page, limit, skip } = getPaginationParams(req);
+        const sort = buildSort(req, 'createdAt', -1);
+        const search = buildSearch(req, ['name', 'sku', 'description']);
+
+        const query: any = { ...search };
+
+        const total = await Product.countDocuments(query);
+        const products = await Product.find(query)
+            .sort(sort as any)
+            .skip(skip)
+            .limit(limit);
+
+        res.json({
+            data: products,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching products' });
     }

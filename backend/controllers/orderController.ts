@@ -6,6 +6,7 @@ import User from '../models/User';
 import SystemSetting from '../models/SystemSetting';
 import { CommissionEngine } from '../services/CommissionEngine';
 import { activateUser } from '../services/userActivationService';
+import { getPaginationParams, buildSort } from '../utils/queryHelpers';
 
 // Helper to get setting (Duplicated from productController - potentially extract to service later)
 const getSetting = async (key: string): Promise<boolean> => {
@@ -177,15 +178,61 @@ export const getMyOrders = async (req: Request, res: Response) => {
 // Admin: Get All Orders
 export const getAllOrders = async (req: Request, res: Response) => {
     try {
+        const { page, limit, skip } = getPaginationParams(req);
+        const sort = buildSort(req, 'createdAt', -1);
         const { status } = req.query;
-        const filter: any = {};
-        if (status) filter.status = status;
 
-        const orders = await Order.find(filter).populate('userId', 'firstName lastName email').sort({ createdAt: -1 });
-        res.json(orders);
+        // Base Query
+        const query: any = {};
+        if (status) query.status = status;
+
+        // Search Logic (Complex because of population)
+        const search = req.query.search as string;
+        if (search) {
+            // If searching by Order ID, it's direct
+            // If searching by User Name/Email, we need aggregate or 2-step find. 
+            // For simplicity in Mongoose without massive aggregation:
+            // 1. Find users matching search
+            // 2. Find orders by those users OR matching order ID
+            const users = await User.find({
+                $or: [
+                    { email: { $regex: search, $options: 'i' } },
+                    { firstName: { $regex: search, $options: 'i' } },
+                    { lastName: { $regex: search, $options: 'i' } }
+                ]
+            }).select('_id');
+
+            const userIds = users.map(u => u._id);
+
+            query.$or = [
+                { _id: isValidObjectId(search) ? search : null }, // Exact ID match if valid
+                { userId: { $in: userIds } }, // Search by User
+                { paymentMethod: { $regex: search, $options: 'i' } }
+            ].filter(c => c._id !== null); // Filter out null ID checks
+        }
+
+        const total = await Order.countDocuments(query);
+        const orders = await Order.find(query)
+            .populate('userId', 'firstName lastName email')
+            .sort(sort as any)
+            .skip(skip)
+            .limit(limit);
+
+        res.json({
+            data: orders,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: 'Error fetching orders' });
     }
+};
+
+// Helper for ID validation
+const isValidObjectId = (id: string) => {
+    return /^[0-9a-fA-F]{24}$/.test(id);
 };
 
 // Admin: Update Order Status
