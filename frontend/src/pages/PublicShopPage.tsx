@@ -4,7 +4,10 @@ import { ShoppingBag, User } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
+import { useUI } from '../components/UIContext';
+
 const PublicShopPage = () => {
+    const { showAlert } = useUI();
     const [searchParams] = useSearchParams();
     const refUsername = searchParams.get('ref');
 
@@ -52,11 +55,11 @@ const PublicShopPage = () => {
                 referrerId: null // TODO: Add lookup logic
             }).unwrap();
 
-            alert('Guest Order Placed Successfully!');
+            showAlert('Guest Order Placed Successfully!', 'success');
             setCheckoutMode(false);
             setCart([]);
         } catch (err: any) {
-            alert(err.data?.message || 'Order Failed');
+            showAlert(err.data?.message || 'Order Failed', 'error');
         }
     };
 

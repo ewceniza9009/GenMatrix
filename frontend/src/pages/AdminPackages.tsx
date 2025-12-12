@@ -3,7 +3,10 @@ import { Package, Plus, Edit2, Trash2, X, Save } from 'lucide-react';
 import { useGetPackagesQuery, useCreatePackageMutation, useUpdatePackageMutation, useDeletePackageMutation } from '../store/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { useUI } from '../components/UIContext';
+
 const AdminPackages = () => {
+    const { showConfirm, showAlert } = useUI();
     const { data: packages = [], isLoading } = useGetPackagesQuery(true);
     const [createPackage] = useCreatePackageMutation();
     const [updatePackage] = useUpdatePackageMutation();
@@ -51,9 +54,20 @@ const AdminPackages = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this package?')) {
-            await deletePackage(id);
-        }
+        showConfirm({
+            title: 'Delete Package?',
+            message: 'Are you sure you want to delete this package?',
+            type: 'danger',
+            confirmText: 'Yes, Delete',
+            onConfirm: async () => {
+                try {
+                    await deletePackage(id).unwrap();
+                    showAlert('Package deleted successfully', 'success');
+                } catch {
+                    showAlert('Failed to delete package', 'error');
+                }
+            }
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -65,13 +79,15 @@ const AdminPackages = () => {
         try {
             if (editingPackage) {
                 await updatePackage({ id: editingPackage._id, ...payload }).unwrap();
+                showAlert('Package updated successfully', 'success');
             } else {
                 await createPackage(payload).unwrap();
+                showAlert('Package created successfully', 'success');
             }
             setIsModalOpen(false);
         } catch (err) {
             console.error('Failed to save package', err);
-            alert('Failed to save package');
+            showAlert('Failed to save package', 'error');
         }
     };
 

@@ -9,7 +9,10 @@ import {
 } from '../store/api';
 import { formatDistanceToNow } from 'date-fns';
 
+import { useUI } from './UIContext';
+
 const NotificationCenter = () => {
+    const { showAlert } = useUI();
     const [isOpen, setIsOpen] = useState(false);
 
     // Live Data
@@ -41,7 +44,7 @@ const NotificationCenter = () => {
     const handleSeed = async () => {
         try {
             await seedNotifications({}).unwrap();
-            alert('Test notifications created!');
+            showAlert('Test notifications created!', 'success');
         } catch (err) {
             console.error('Failed to seed', err);
         }

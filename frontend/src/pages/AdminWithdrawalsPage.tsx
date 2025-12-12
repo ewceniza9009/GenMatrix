@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useGetPendingWithdrawalsQuery, useProcessWithdrawalMutation } from '../store/api';
 import { CheckCircle, XCircle, CreditCard, Calendar } from 'lucide-react';
 import { DataTable } from '../components/DataTable';
+import { useUI } from '../components/UIContext';
 
 const AdminWithdrawalsPage = () => {
+    const { showConfirm, showAlert } = useUI();
     // Query State
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
@@ -20,18 +22,28 @@ const AdminWithdrawalsPage = () => {
     const [processWithdrawal] = useProcessWithdrawalMutation();
 
     const handleProcess = async (item: any, action: 'APPROVE' | 'REJECT') => {
-        if (!confirm(`Are you sure you want to ${action} this withdrawal for $${Math.abs(item.amount)}?`)) return;
+        const isApprove = action === 'APPROVE';
+        const actionText = isApprove ? 'approve' : 'reject';
 
-        try {
-            await processWithdrawal({
-                userId: item.user._id,
-                transactionId: item.transaction._id,
-                action
-            }).unwrap();
-        } catch (err) {
-            console.error('Failed to process withdrawal', err);
-            alert('Failed to process withdrawal. Check console.');
-        }
+        showConfirm({
+            title: `${isApprove ? 'Approve' : 'Reject'} Withdrawal?`,
+            message: `Are you sure you want to ${actionText} this withdrawal for $${Math.abs(item.amount)}?`,
+            type: isApprove ? 'info' : 'danger',
+            confirmText: isApprove ? 'Yes, Pay' : 'Yes, Reject',
+            onConfirm: async () => {
+                try {
+                    await processWithdrawal({
+                        userId: item.user._id,
+                        transactionId: item.transaction._id,
+                        action
+                    }).unwrap();
+                    showAlert(`Withdrawal ${actionText}d successfully`, 'success');
+                } catch (err) {
+                    console.error('Failed to process withdrawal', err);
+                    showAlert('Failed to process withdrawal. Check console.', 'error');
+                }
+            }
+        });
     };
 
     const columns = [
@@ -67,17 +79,7 @@ const AdminWithdrawalsPage = () => {
             render: (item: any) => (
                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
                     <CreditCard size={16} className="text-gray-400" />
-                    {item.transaction[0].description}
-                    {/* Note: In aggregation unwinding transaction usually results in an object, but sometimes if array logic persists verify. 
-                        Wait, aggregation $unwind makes 'transaction' an object. Double check response structure from backend controller.
-                        In controller: 'transaction: $transactions' (unwound), so it is an object.
-                        However, sometimes client side sees different if types are loose.
-                        Wait, looking at controller logic: 
-                        $project: { transaction: '$transactions' ... }
-                        So item.transaction.description is correct.
-                        Let's fix access.
-                    */}
-                    {item.transaction.description}
+                    {item.transaction?.description || 'Unknown Transaction'}
                 </div>
             )
         },
@@ -120,7 +122,7 @@ const AdminWithdrawalsPage = () => {
             <DataTable
                 title="Withdrawal Requests"
                 columns={columns}
-                data={data?.data || []}
+                data={data?.data?.map((item: any, i: number) => ({ ...item, _id: item._id || `${item.walletId}_${i}` })) || []}
                 total={data?.total || 0}
                 page={page}
                 totalPages={data?.totalPages || 1}

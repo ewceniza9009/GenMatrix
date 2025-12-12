@@ -5,7 +5,10 @@ import { useUpdateProfileMutation } from '../../store/api';
 import { setCredentials } from '../../store/authSlice';
 import { Save } from 'lucide-react';
 
+import { useUI } from '../UIContext';
+
 const PersonalSettings = () => {
+    const { showAlert } = useUI();
     const dispatch = useDispatch();
     const { user, token } = useSelector((state: RootState) => state.auth);
     const [updateProfile, { isLoading }] = useUpdateProfileMutation();
@@ -30,7 +33,7 @@ const PersonalSettings = () => {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (password && password !== confirmPassword) {
-            alert("Passwords do not match");
+            showAlert("Passwords do not match", 'warning');
             return;
         }
 
@@ -51,12 +54,12 @@ const PersonalSettings = () => {
                 dispatch(setCredentials({ user: updatedUser, token }));
             }
 
-            alert('Profile Updated');
+            showAlert('Profile Updated', 'success');
             setIsEditing(false);
             setPassword('');
             setConfirmPassword('');
         } catch (err) {
-            alert('Error updating profile');
+            showAlert('Error updating profile', 'error');
         }
     };
 

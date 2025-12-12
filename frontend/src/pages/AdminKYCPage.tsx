@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { useGetPendingKYCQuery, useUpdateKYCStatusMutation } from '../store/api';
 import { CheckCircle, XCircle, Eye, Calendar } from 'lucide-react';
 
+import { useUI } from '../components/UIContext';
+
 const AdminKYCPage = () => {
+    const { showConfirm, showAlert } = useUI();
     const { data: kycs, isLoading } = useGetPendingKYCQuery();
     const [updateStatus] = useUpdateKYCStatusMutation();
 
@@ -31,19 +34,27 @@ const AdminKYCPage = () => {
 
     const handleAction = async (userId: string, status: 'approved' | 'rejected') => {
         if (status === 'rejected' && !rejectComment) {
-            alert('Please provide a reason for rejection.');
+            showAlert('Please provide a reason for rejection.', 'warning');
             return;
         }
-        if (!confirm(`Are you sure you want to ${status} this user?`)) return;
 
-        try {
-            await updateStatus({ userId, status, comment: rejectComment }).unwrap();
-            setSelectedUser(null);
-            setRejectComment('');
-        } catch (err) {
-            console.error(err);
-            alert('Failed to update status');
-        }
+        showConfirm({
+            title: status === 'approved' ? 'Approve KYC?' : 'Reject KYC?',
+            message: `Are you sure you want to ${status} this user?`,
+            type: status === 'approved' ? 'info' : 'danger',
+            confirmText: status === 'approved' ? 'Yes, Approve' : 'Yes, Reject',
+            onConfirm: async () => {
+                try {
+                    await updateStatus({ userId, status, comment: rejectComment }).unwrap();
+                    setSelectedUser(null);
+                    setRejectComment('');
+                    showAlert(`KYC ${status} successfully`, 'success');
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Failed to update status', 'error');
+                }
+            }
+        });
     };
 
     return (

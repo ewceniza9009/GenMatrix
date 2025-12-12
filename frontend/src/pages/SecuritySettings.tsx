@@ -4,7 +4,10 @@ import { RootState } from '../store';
 import { useUploadKYCMutation, useGenerate2FAMutation, useVerify2FAMutation, useDisable2FAMutation } from '../store/api';
 import { Shield, CheckCircle, XCircle, Loader, Upload, Smartphone } from 'lucide-react';
 
+import { useUI } from '../components/UIContext';
+
 const SecuritySettings = () => {
+    const { showConfirm, showAlert } = useUI();
     const user = useSelector((state: RootState) => state.auth.user);
     const [uploadKYC, { isLoading: isUploading }] = useUploadKYCMutation();
     const [generate2FA] = useGenerate2FAMutation();
@@ -16,7 +19,6 @@ const SecuritySettings = () => {
 
     // 2FA State
     const [qrCode, setQrCode] = useState<string | null>(null);
-    const [secret, setSecret] = useState<string | null>(null);
     const [token, setToken] = useState('');
     const [step, setStep] = useState<'idle' | 'scanning'>('idle');
 
@@ -33,11 +35,11 @@ const SecuritySettings = () => {
         formData.append('document', file);
         try {
             await uploadKYC(formData).unwrap();
-            alert('Document uploaded successfully. Please wait for admin approval.');
+            showAlert('Document uploaded successfully. Please wait for admin approval.', 'success');
             setFile(null);
         } catch (err: any) {
             console.error(err);
-            alert(err?.data?.message || 'Upload failed');
+            showAlert(err?.data?.message || 'Upload failed', 'error');
         }
     };
 
@@ -46,7 +48,6 @@ const SecuritySettings = () => {
         try {
             const data = await generate2FA({}).unwrap();
             setQrCode(data.qrCode);
-            setSecret(data.secret);
             setStep('scanning');
         } catch (err) {
             console.error(err);
@@ -57,25 +58,29 @@ const SecuritySettings = () => {
         if (!token) return;
         try {
             await verify2FA({ token }).unwrap();
-            alert('2FA Enabled Successfully!');
+            showAlert('2FA Enabled Successfully!', 'success');
             setStep('idle');
             setQrCode(null);
             setToken('');
         } catch (err) {
-            alert('Invalid Code');
+            showAlert('Invalid Code', 'error');
         }
     };
 
     const handleDisable2FA = async () => {
-        if (!confirm('Are you sure? This will reduce your account security.')) return;
-        const code = prompt('Enter your 2FA code to confirm:');
-        if (!code) return;
-        try {
-            await disable2FA({ token: code }).unwrap();
-            alert('2FA Disabled');
-        } catch (err) {
-            alert('Invalid Code');
-        }
+        showConfirm({
+            title: 'Disable 2FA?',
+            message: 'Are you sure? This will reduce your account security.',
+            type: 'danger',
+            confirmText: 'Verify & Disable',
+            onConfirm: () => {
+                const code = prompt('Enter your 2FA code to confirm:');
+                if (!code) return;
+                disable2FA({ token: code }).unwrap()
+                    .then(() => showAlert('2FA Disabled', 'success'))
+                    .catch(() => showAlert('Invalid Code', 'error'));
+            }
+        });
     }
 
     return (

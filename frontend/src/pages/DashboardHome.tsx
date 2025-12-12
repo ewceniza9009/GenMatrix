@@ -9,8 +9,21 @@ import { useGetWalletQuery, useGetTreeQuery, useGetEarningsAnalyticsQuery, useGe
 
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
+import { useUI } from '../components/UIContext';
+
 const DashboardHome = () => {
+  const { showAlert } = useUI();
   const user = useSelector((state: RootState) => state.auth.user);
+  // ... (rest of the code)
+
+  // Note: I will only replace the specific block involving the alert.
+  // However, I need to inject `const { showAlert } = useUI();` at the top of the component.
+  // replace_file_content requires me to replace a contiguous block.
+  // If I cannot add the hook easily without replacing the whole file header, I might need to do it in two steps or a larger block.
+  // Let's try to do it in two chunks? No, replace_file_content allows SINGLE contiguous block.
+  // Wait, I can use multi_replace_file_content for non-contiguous edits.
+  // Yes, that is the correct tool. I will use multi_replace.
+
 
   // Fetch Sponsor Details
   const { data: sponsorDetails, isLoading: sponsorLoading } = useGetMemberDetailsQuery(user?.sponsorId, { skip: !user?.sponsorId });
@@ -170,7 +183,7 @@ const DashboardHome = () => {
               <div className="flex items-center gap-3 bg-white/10 p-1.5 rounded-lg border border-white/20 backdrop-blur-sm">
                 <code className="px-3 py-1 font-mono text-sm select-all">https://mlm.app/ref/{user?.username}</code>
                 <button
-                  onClick={() => { navigator.clipboard.writeText(`https://mlm.app/ref/${user?.username}`); alert('Copied!'); }}
+                  onClick={() => { navigator.clipboard.writeText(`https://mlm.app/ref/${user?.username}`); showAlert('Copied!', 'success'); }}
                   className="bg-white text-teal-600 px-3 py-1.5 rounded font-bold text-xs hover:bg-teal-50 transition"
                 >
                   Copy

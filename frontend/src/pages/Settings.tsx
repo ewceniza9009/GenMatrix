@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { useGetConfigQuery, useUpdateConfigMutation, useUpdateProfileMutation } from '../store/api';
-import { Sliders, Shield, Network, Settings as SettingsIcon, Save, User, Mail } from 'lucide-react';
+import { Sliders, Shield, Network, Settings as SettingsIcon, Save, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PersonalSettings from '../components/settings/PersonalSettings';
 import SecuritySettings from './SecuritySettings';
 
+import { useUI } from '../components/UIContext';
+
 const Settings = () => {
+  const { showAlert } = useUI();
   const user = useSelector((state: RootState) => state.auth.user);
   const [updateProfile] = useUpdateProfileMutation();
 
@@ -62,9 +65,9 @@ const Settings = () => {
         enableHoldingTank,
       }).unwrap();
 
-      alert('Profile Updated');
+      showAlert('Profile Updated', 'success');
     } catch (err) {
-      alert('Error updating profile');
+      showAlert('Error updating profile', 'error');
     }
   };
 
@@ -76,9 +79,9 @@ const Settings = () => {
         matchingBonusGenerations: adminForm.matchingBonusGenerations.split(',').map(s => Number(s.trim()))
       };
       await updateConfig(payload).unwrap();
-      alert('System Configuration Updated');
+      showAlert('System Configuration Updated', 'success');
     } catch (err) {
-      alert('Error updating config');
+      showAlert('Error updating config', 'error');
     }
   };
 
@@ -111,8 +114,8 @@ const Settings = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.id
-                  ? 'border-teal-500 text-teal-600 dark:text-teal-400'
-                  : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'
+                ? 'border-teal-500 text-teal-600 dark:text-teal-400'
+                : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'
                 }`}
             >
               <Icon size={18} />

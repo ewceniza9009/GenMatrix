@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useGetAllOrdersQuery, useUpdateOrderStatusMutation } from '../store/api';
 import { CheckCircle, XCircle, Clock } from 'lucide-react';
-import { ConfirmationModal } from '../components/ConfirmationModal';
 import { DataTable } from '../components/DataTable';
+import { useUI } from '../components/UIContext';
 
 const AdminOrdersPage = () => {
     // Query State
@@ -23,75 +23,42 @@ const AdminOrdersPage = () => {
 
     const [updateStatus, { isLoading: isUpdating }] = useUpdateOrderStatusMutation();
 
-    // Modal State
-    const [modalConfig, setModalConfig] = useState<{
-        isOpen: boolean;
-        type: 'success' | 'danger' | 'warning';
-        title: string;
-        message: string;
-        confirmText: string;
-        onConfirm: () => void;
-    }>({
-        isOpen: false,
-        type: 'warning',
-        title: '',
-        message: '',
-        confirmText: '',
-        onConfirm: () => { }
-    });
+    const { showConfirm, showAlert } = useUI();
 
-    const openConfirmModal = (
-        type: 'success' | 'danger' | 'warning',
-        title: string,
-        message: string,
-        confirmText: string,
-        action: () => Promise<void>
-    ) => {
-        setModalConfig({
-            isOpen: true,
-            type,
-            title,
-            message,
-            confirmText,
+    const handleApprove = (orderId: string) => {
+        showConfirm({
+            title: 'Approve and Activate?',
+            message: 'This will mark the order as PAID, activate the user immediately, and distribute all commissions. This action cannot be undone.',
+            type: 'info', // Changed to info/success style logic. Usually success but showConfirm supports danger/info. Let's use info or if confirm supports success, use that. Looking at type defs: type?: 'danger' | 'info'. OK.
+            confirmText: 'Yes, Activate User',
             onConfirm: async () => {
-                await action();
-                setModalConfig(prev => ({ ...prev, isOpen: false }));
+                try {
+                    await updateStatus({ id: orderId, status: 'PAID' }).unwrap();
+                    showAlert('Order marked as PAID', 'success');
+                } catch (error) {
+                    console.error('Failed to approve order', error);
+                    showAlert('Failed to update status', 'error');
+                }
             }
         });
     };
 
-    const handleApprove = (orderId: string) => {
-        openConfirmModal(
-            'success',
-            'Approve and Activate?',
-            'This will mark the order as PAID, activate the user immediately, and distribute all commissions. This action cannot be undone.',
-            'Yes, Activate User',
-            async () => {
-                try {
-                    await updateStatus({ id: orderId, status: 'PAID' }).unwrap();
-                } catch (error) {
-                    console.error('Failed to approve order', error);
-                    alert('Failed to update status');
-                }
-            }
-        );
-    };
-
     const handleReject = (orderId: string) => {
-        openConfirmModal(
-            'danger',
-            'Cancel Order?',
-            'Are you sure you want to CANCEL this order permanently?',
-            'Yes, Cancel Order',
-            async () => {
+        showConfirm({
+            title: 'Cancel Order?',
+            message: 'Are you sure you want to CANCEL this order permanently?',
+            type: 'danger',
+            confirmText: 'Yes, Cancel Order',
+            onConfirm: async () => {
                 try {
                     await updateStatus({ id: orderId, status: 'CANCELLED' }).unwrap();
+                    showAlert('Order cancelled', 'success');
                 } catch (error) {
                     console.error('Failed to cancel order', error);
-                    alert('Failed to update status');
+                    showAlert('Failed to update status', 'error');
                 }
             }
-        );
+        });
     };
 
     const getStatusColor = (status: string) => {
@@ -217,18 +184,6 @@ const AdminOrdersPage = () => {
                         <option value="CANCELLED">Cancelled</option>
                     </select>
                 }
-            />
-
-            {/* Confirmation Modal */}
-            <ConfirmationModal
-                isOpen={modalConfig.isOpen}
-                onClose={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
-                onConfirm={modalConfig.onConfirm}
-                title={modalConfig.title}
-                message={modalConfig.message}
-                type={modalConfig.type}
-                confirmText={modalConfig.confirmText}
-                isLoading={isUpdating}
             />
         </div>
     );

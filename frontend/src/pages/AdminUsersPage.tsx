@@ -5,7 +5,10 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { DataTable } from '../components/DataTable';
 
+import { useUI } from '../components/UIContext';
+
 const AdminUsersPage = () => {
+    const { showConfirm, showAlert } = useUI();
     const currentUser = useSelector((state: RootState) => state.auth.user) as any;
 
     // Query State
@@ -27,17 +30,24 @@ const AdminUsersPage = () => {
         const newRole = currentRole === 'admin' ? 'user' : 'admin';
 
         if (userId === currentUser?._id) {
-            alert("You cannot change your own role.");
+            showAlert("You cannot change your own role.", 'warning');
             return;
         }
 
-        if (!confirm(`Are you sure you want to change ${username}'s role to ${newRole.toUpperCase()}?`)) return;
-
-        try {
-            await updateRole({ userId, role: newRole }).unwrap();
-        } catch (err) {
-            alert('Failed to update role');
-        }
+        showConfirm({
+            title: `Change Role to ${newRole.toUpperCase()}?`,
+            message: `Are you sure you want to change ${username}'s role to ${newRole.toUpperCase()}?`,
+            type: newRole === 'admin' ? 'info' : 'danger', // Promoting is info, Demoting/Restriction usually danger/warning but here specific
+            confirmText: 'Yes, Change Role',
+            onConfirm: async () => {
+                try {
+                    await updateRole({ userId, role: newRole }).unwrap();
+                    showAlert(`User role updated to ${newRole}`, 'success');
+                } catch (err) {
+                    showAlert('Failed to update role', 'error');
+                }
+            }
+        });
     };
 
     const columns = [

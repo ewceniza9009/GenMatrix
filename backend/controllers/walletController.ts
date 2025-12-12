@@ -186,7 +186,7 @@ export const getPendingWithdrawals = async (req: Request, res: Response) => {
       // 4. Project cleaner structure and support search
       {
         $project: {
-          _id: 0,
+          _id: '$transactions._id',
           walletId: '$_id',
           transaction: '$transactions',
           user: {

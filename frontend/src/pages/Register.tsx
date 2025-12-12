@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useRegisterMutation, useGetPackagesQuery } from '../store/api';
 import { useNavigate, Link } from 'react-router-dom';
-import { CheckCircle, Package } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
+
+import { useUI } from '../components/UIContext';
 
 const Register = () => {
+  const { showAlert } = useUI();
   const [formData, setFormData] = useState({ username: '', email: '', password: '', sponsorUsername: '', packageName: '' });
   const [register, { isLoading, error }] = useRegisterMutation();
   const { data: packages = [], isLoading: isLoadingPackages } = useGetPackagesQuery(false); // false = only active
@@ -12,14 +15,23 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.packageName) {
-      alert("Please select a package");
+      showAlert("Please select a package", 'warning');
       return;
     }
     try {
       await register(formData).unwrap();
       navigate('/login');
+      showAlert('Registration successful! Please login.', 'success');
     } catch (err) {
       console.error('Failed to register', err);
+      // Determine if we should show alert here or rely on the error message rendered in JSX
+      // The original code rendered error in JSX (line 120) AND logged to console.
+      // It didn't actually alert on error (except for package selection). 
+      // I added a success alert which is good.
+      // I will keep the console error but maybe add an error toast too? 
+      // The JSX error display is good for form feedback. I'll stick to that for persistent error, 
+      // but a toast is immediate feedback. I'll add a toast for generic failure.
+      showAlert('Registration failed. Please check the form.', 'error');
     }
   };
 

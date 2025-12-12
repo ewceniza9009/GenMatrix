@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { DataTable } from '../components/DataTable';
 
+import { useUI } from '../components/UIContext';
+
 interface Product {
     _id: string;
     name: string;
@@ -30,6 +32,7 @@ interface Product {
 }
 
 const AdminProductsPage = () => {
+    const { showConfirm, showAlert } = useUI();
     // Query State
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
@@ -121,13 +124,21 @@ const AdminProductsPage = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (window.confirm('Are you sure you want to delete this product?')) {
-            try {
-                await deleteProduct(id).unwrap();
-            } catch (error) {
-                console.error('Failed to delete product', error);
+        showConfirm({
+            title: 'Delete Product?',
+            message: 'Are you sure you want to delete this product? This action cannot be undone.',
+            type: 'danger',
+            confirmText: 'Delete Product',
+            onConfirm: async () => {
+                try {
+                    await deleteProduct(id).unwrap();
+                    showAlert('Product deleted successfully', 'success');
+                } catch (error) {
+                    console.error('Failed to delete product', error);
+                    showAlert('Failed to delete product', 'error');
+                }
             }
-        }
+        });
     };
 
     const handleRestockClick = (product: Product) => {
