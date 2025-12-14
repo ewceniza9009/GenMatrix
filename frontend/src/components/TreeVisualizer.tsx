@@ -17,7 +17,8 @@ const TreeVisualizer = ({ data: treeData, isLoading, error, onNodeClick }: TreeV
   const containerStyles = {
     width: '100%',
     height: '100%',
-    background: 'transparent'
+    background: 'transparent',
+    touchAction: 'none' // Enable custom touch handling (D3 zoom/pan)
   };
 
   const renderForeignObjectNode = ({ nodeDatum, toggleNode }: { nodeDatum: any, toggleNode: () => void }) => {
