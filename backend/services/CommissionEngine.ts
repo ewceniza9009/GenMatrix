@@ -101,8 +101,7 @@ export class CommissionEngine {
       // Often '1:2 or 2:1' means "Weak leg * 2 <= Strong Leg"
       if (pairs === 0) {
         // Try Swap logic if supported (2:1 check)
-        // const possibleRightSwap = Math.floor(right / PAIR_UNIT);
-        // const possibleLeftSwap = Math.floor(left / (PAIR_UNIT * 2));
+
         // ... logic loop ... 
         // keeping simple for now as per specific request
       }

@@ -12,7 +12,7 @@ import DashboardHome from './pages/DashboardHome';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import PublicShopPage from './pages/PublicShopPage';
-import LandingPage from './pages/LandingPage'; // Import New Landing Page
+import LandingPage from './pages/LandingPage';
 import EnrollMember from './pages/EnrollMember';
 import WalletPage from './pages/Wallet';
 import ShopPage from './pages/ShopPage';

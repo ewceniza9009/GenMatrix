@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { getPaginationParams, buildSort, buildSearch } from '../utils/queryHelpers';
 import Product from '../models/Product';
 import User from '../models/User';
-// import SystemConfig from '../models/SystemConfig'; // Deprecated for shop settings
+
 import SystemSetting from '../models/SystemSetting';
 
 // Helper to get setting

@@ -6,8 +6,8 @@ import { RootState } from '../store';
 import { motion } from 'framer-motion';
 import { useCart } from '../components/CartContext';
 import { CartDrawer } from '../components/CartDrawer';
-import { ProductDetailsModal } from '../components/ProductDetailsModal'; // Import Modal
-import { Eye, Heart } from 'lucide-react'; // Import Eye Icon
+import { ProductDetailsModal } from '../components/ProductDetailsModal';
+import { Eye, Heart } from 'lucide-react';
 import { useGetWishlistQuery, useAddToWishlistMutation, useRemoveFromWishlistMutation } from '../store/api';
 
 const ShopPage = () => {

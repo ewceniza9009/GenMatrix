@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import User, { IUser } from '../models/User';
-import Commission from '../models/Commission'; // Import Commission
+import Commission from '../models/Commission';
 import { Types } from 'mongoose';
 
 // Get Tree
@@ -118,7 +118,7 @@ export const getUpline = async (req: Request, res: Response) => {
 
       // Crawl up manually
       for (let i = 0; i < depth; i++) {
-        // console.log(`[getUpline] Crawl step ${i}, current: ${current?._id}, parentId: ${current?.parentId}`);
+
         if (!current || !current.parentId) break;
 
         try {

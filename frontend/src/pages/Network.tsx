@@ -52,7 +52,7 @@ const Network = () => {
   React.useEffect(() => {
     const timer = setTimeout(() => {
       if (searchQuery) {
-        console.log('Triggering search for:', searchQuery);
+
         triggerSearch(searchQuery);
       }
     }, 500); // 500ms delay
@@ -86,8 +86,8 @@ const Network = () => {
             <button
               onClick={() => setViewMode('downline')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'downline'
-                  ? 'bg-teal-50 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400 shadow-sm'
-                  : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+                ? 'bg-teal-50 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400 shadow-sm'
+                : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
                 }`}
             >
               <ArrowDown size={14} />
@@ -96,8 +96,8 @@ const Network = () => {
             <button
               onClick={() => setViewMode('upline')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'upline'
-                  ? 'bg-purple-50 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 shadow-sm'
-                  : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+                ? 'bg-purple-50 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 shadow-sm'
+                : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
                 }`}
             >
               <ArrowUp size={14} />
