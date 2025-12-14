@@ -4,18 +4,31 @@ import { useUI } from './UIContext';
 import { useCreateOrderMutation } from '../store/api';
 import { X, CreditCard, ChevronRight, Box } from 'lucide-react';
 import { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
 
 export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
     const { cart, totalPrice, totalPV, clearCart } = useCart();
     const { showAlert } = useUI();
     const [createOrder, { isLoading }] = useCreateOrderMutation();
-    const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'CREDIT_CARD' | 'CASH'>('wallet');
+    const { user } = useSelector((state: RootState) => state.auth);
+
+    const isWalletEnabled = user?.isActive && user?.status === 'active';
+
+    const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'CREDIT_CARD' | 'CASH'>(
+        isWalletEnabled ? 'wallet' : 'CREDIT_CARD'
+    );
 
     // Auto-select card if wallet is empty/insufficient or user status forbids wallet?
     // For now, let user select.
 
     const handleCheckout = async () => {
         try {
+            if (paymentMethod === 'wallet' && !isWalletEnabled) {
+                showAlert('Wallet payment requires account activation.', 'error');
+                return;
+            }
+
             const items = cart.map(item => ({
                 productId: item.id,
                 quantity: item.quantity
@@ -96,18 +109,27 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
                             <div>
                                 <h3 className="text-sm font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-3">Payment Method</h3>
                                 <div
-                                    className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex items-center gap-4 ${paymentMethod === 'wallet'
-                                        ? 'border-teal-500 bg-teal-50 dark:bg-teal-500/10'
-                                        : 'border-gray-200 dark:border-white/10'
+                                    className={`p-4 rounded-xl border-2 transition-all flex items-center gap-4 ${!isWalletEnabled
+                                        ? 'opacity-50 cursor-not-allowed border-gray-200 dark:border-white/5 bg-gray-100 dark:bg-white/5'
+                                        : paymentMethod === 'wallet'
+                                            ? 'cursor-pointer border-teal-500 bg-teal-50 dark:bg-teal-500/10'
+                                            : 'cursor-pointer border-gray-200 dark:border-white/10'
                                         }`}
-                                    onClick={() => setPaymentMethod('wallet')}
+                                    onClick={() => isWalletEnabled && setPaymentMethod('wallet')}
                                 >
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'wallet' ? 'border-teal-500' : 'border-gray-300'}`}>
-                                        {paymentMethod === 'wallet' && <div className="w-2.5 h-2.5 rounded-full bg-teal-500" />}
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${!isWalletEnabled ? 'border-gray-300' :
+                                        paymentMethod === 'wallet' ? 'border-teal-500' : 'border-gray-300'
+                                        }`}>
+                                        {paymentMethod === 'wallet' && isWalletEnabled && <div className="w-2.5 h-2.5 rounded-full bg-teal-500" />}
                                     </div>
                                     <div>
-                                        <p className="font-bold text-gray-900 dark:text-white">E-Wallet Balance</p>
-                                        <p className="text-xs text-gray-500 dark:text-slate-400">Pay using your available earnings</p>
+                                        <p className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                            E-Wallet Balance
+                                            {!isWalletEnabled && <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Activation Required</span>}
+                                        </p>
+                                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                                            {!isWalletEnabled ? 'Only active members can use wallet.' : 'Pay using your available earnings'}
+                                        </p>
                                     </div>
                                 </div>
 

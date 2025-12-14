@@ -28,14 +28,16 @@ const findPlacement = async (sponsorId: string | Types.ObjectId, preference: str
   }
 
   // Multi-Center (Placeholder - demo usually sticks to basic, but we can default to balanced or specific logic)
-  if (preference === 'balanced') {
+  // Multi-Center / Alternate (1 Left, 1 Right)
+  // This logic attempts to keep the tree density balanced by filling the side with fewer members.
+  if (preference === 'balanced' || preference === 'alternate') {
     if (!sponsor.leftChildId) return { parentId: sponsor._id as Types.ObjectId, position: 'left' };
     if (!sponsor.rightChildId) return { parentId: sponsor._id as Types.ObjectId, position: 'right' };
 
     // Get subtree counts synchronously (or approximation via PV)
     // For true 1:1 balance, we need descendant count.
 
-    // Check Left Subtree Count
+    // Check Left Subtree Count (Expensive regex count for accuracy)
     const leftCount = await User.countDocuments({ path: { $regex: `,${sponsor.leftChildId.toString()},` } });
 
     // Check Right Subtree Count
@@ -57,17 +59,22 @@ const findPlacement = async (sponsorId: string | Types.ObjectId, preference: str
   const rightPV = commission ? commission.rightLegPV + commission.carriedRightPV : 0;
 
   if (leftPV < rightPV) {
+    if (!sponsor.leftChildId) return { parentId: sponsor._id as Types.ObjectId, position: 'left' };
     return traverseToFirstEmpty(sponsor.leftChildId);
   } else if (rightPV < leftPV) {
+    if (!sponsor.rightChildId) return { parentId: sponsor._id as Types.ObjectId, position: 'right' };
     return traverseToFirstEmpty(sponsor.rightChildId);
   } else {
     // PV is EQUAL (Tie-Breaker needed)
     // Common in Shop First (0 vs 0)
     // Secondary Check: Member Count (Balance the tree structure)
 
+    // Check immediate availability first (Optimization)
+    if (!sponsor.leftChildId) return { parentId: sponsor._id as Types.ObjectId, position: 'left' };
+    if (!sponsor.rightChildId) return { parentId: sponsor._id as Types.ObjectId, position: 'right' };
+
     // We need to count members in each leg to decide
     // Note: This regex count is expensive for huge trees, but essential for balancing.
-    // Optimization: Store 'leftMemberCount' and 'rightMemberCount' on User model in future.
     const leftCount = await User.countDocuments({ path: { $regex: `,${sponsor.leftChildId.toString()},` } });
     const rightCount = await User.countDocuments({ path: { $regex: `,${sponsor.rightChildId.toString()},` } });
 
