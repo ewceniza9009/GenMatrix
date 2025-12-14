@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { Play, RotateCcw, DollarSign, TrendingUp, ArrowRight, PlusCircle, ShoppingCart, RefreshCw, Zap } from 'lucide-react';
 
-// --- TYPES ---
+
 interface SimulationNode {
     id: string;
     parent?: string;
@@ -19,7 +19,7 @@ interface SimulationNode {
     earnings: number;
     children?: SimulationNode[];
     isSpillover?: boolean;
-    // D3 Props
+
     x?: number;
     y?: number;
 }
@@ -38,14 +38,14 @@ const CommissionSimulation = () => {
     const svgRef = useRef<SVGSVGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Mode: 'story' (The guided detailed tour) | 'sandbox' (Free play)
+
     const [mode, setMode] = useState<'story' | 'sandbox'>('story');
 
-    // --- STORY STATE ---
+
     const [currentStep, setCurrentStep] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
 
-    // --- SANDBOX STATE ---
+
     const [sandboxNodes, setSandboxNodes] = useState<SimulationNode[]>([
         { id: 'root', name: 'YOU', position: 'root', level: 0, personalPV: 0, totalLeftVol: 0, totalRightVol: 0, rank: 'Member', active: false, earnings: 0, children: [] }
     ]);
@@ -55,7 +55,7 @@ const CommissionSimulation = () => {
     // Derived Stats for Sandbox
     const rootNode = sandboxNodes.find(n => n.id === 'root');
 
-    // --- STORY STEPS CONSTANTS ---
+
     const storySteps: SimulationStep[] = [
         {
             id: 'init',
@@ -112,29 +112,99 @@ const CommissionSimulation = () => {
             description: 'When Bob cycles and earns $20, you earn a 10% Matching Bonus ($2) because you sponsored him.',
             breakdown: [{ label: 'Bob Earned', value: '$20' }, { label: 'Your Match', value: '$2', color: 'text-green-600' }],
             actionType: 'info'
+        },
+        {
+            id: 'rank_bronze',
+            title: '8. Rank Advancement (Bronze)',
+            description: 'Your total group volume (Left + Right) exceeds 500 PV. You advance to BRONZE Rank!',
+            breakdown: [{ label: 'Total Group Vol', value: '500+ PV' }, { label: 'New Rank', value: 'BRONZE', color: 'text-yellow-500 font-bold' }],
+            actionType: 'rank'
+        },
+        {
+            id: 'asymmetric',
+            title: '9. Asymmetric Growth',
+            description: 'Your Left leg grows faster. Alice enrolls 3 new members (300 PV total). Your Right leg (Bob) adds 0 PV.',
+            breakdown: [{ label: 'Left Growth', value: '+300 PV', color: 'text-indigo-500' }, { label: 'Right Growth', value: '0 PV' }],
+            actionType: 'enroll'
+        },
+        {
+            id: 'cycle_2',
+            title: '10. Second Cycle (Carryover)',
+            description: 'Left has 400 PV (100 carry + 300 new). Right has 50 PV (carryover). Weak leg is 50. You cycle again!',
+            breakdown: [{ label: 'Weak Leg', value: '50 PV' }, { label: 'Commission', value: '$5', color: 'text-green-600 font-bold' }],
+            actionType: 'cycle'
         }
     ];
 
-    // --- STORY LOGIC (Simplified from previous) ---
+
     const getStoryState = (stepIndex: number) => {
         // Reconstruct basic state for story mode
         let s = { nodes: [{ id: 'root', name: 'YOU', active: false, level: 0, personalPV: 0, totalLeftVol: 0, totalRightVol: 0, rank: 'Member', earnings: 0, children: [] }] as any[], left: 0, right: 0, earn: 0, q: false };
+
+        // 1. You Activate
         if (stepIndex >= 1) { s.nodes[0].active = true; s.nodes[0].personalPV = 100; }
+
+        // 2. Enroll Alice
         if (stepIndex >= 2) { s.nodes[0].children.push({ id: 'alice', name: 'Alice', level: 1, position: 'left', active: true, personalPV: 50, totalLeftVol: 0, totalRightVol: 0, rank: 'Member', earnings: 0 }); s.left += 50; s.earn += 10; s.nodes[0].totalLeftVol += 50; }
+
+        // 3. Enroll Bob
         if (stepIndex >= 3) { s.nodes[0].children.push({ id: 'bob', name: 'Bob', level: 1, position: 'right', active: true, personalPV: 100, totalLeftVol: 0, totalRightVol: 0, rank: 'Member', earnings: 0 }); s.right += 100; s.earn += 20; s.q = true; s.nodes[0].totalRightVol += 100; }
-        if (stepIndex >= 4) { s.earn += 5; s.nodes[0].totalLeftVol -= 50; s.nodes[0].totalRightVol -= 50; } // Cycle 1
-        if (stepIndex >= 5) { s.left = 0; s.right = 50; } // Flush & Carryover
+
+        // 4. Cycle 1
+        if (stepIndex >= 4) { s.earn += 5; s.nodes[0].totalLeftVol -= 50; s.nodes[0].totalRightVol -= 50; }
+
+        // 5. Flush & Carryover (Implicit in variable state, mostly informational)
+        if (stepIndex >= 5) { /* Visual update only */ }
+
+        // 6. Spillover (Charlie)
         if (stepIndex >= 6) {
             const alice = s.nodes[0].children.find((c: any) => c.id === 'alice');
-            if (alice) { if (!alice.children) alice.children = []; alice.children.push({ id: 'charlie', name: 'Charlie', level: 2, position: 'left', active: true, isSpillover: true, personalPV: 100, totalLeftVol: 0, totalRightVol: 0, rank: 'Member', earnings: 0 }); }
+            if (alice) {
+                if (!alice.children) alice.children = [];
+                alice.children.push({ id: 'charlie', name: 'Charlie', level: 2, position: 'left', active: true, isSpillover: true, personalPV: 100, totalLeftVol: 0, totalRightVol: 0, rank: 'Member', earnings: 0 });
+            }
             s.left += 100; s.earn += 20; s.nodes[0].totalLeftVol += 100; // Charlie's volume rolls up
         }
+
+        // 7. Matching Bonus
         if (stepIndex >= 7) { s.earn += 2; }
+
+        // 8. Rank Advancement (Bronze)
+        if (stepIndex >= 8) { s.nodes[0].rank = 'Bronze'; }
+
+        // 9. Asymmetric Growth
+        // Alice adds 3 members: D, E, F (100 PV each)
+        if (stepIndex >= 9) {
+            const alice = s.nodes[0].children.find((c: any) => c.id === 'alice');
+            if (alice && alice.children) {
+                // Charlie is already there (index 0). Add under Charlie or Alice's other leg?
+                // Let's just dump volume for simplicity visually
+                alice.children[0].children = [
+                    { id: 'd', name: 'Dave', level: 3, position: 'left', active: true, personalPV: 100, totalLeftVol: 0, totalRightVol: 0, rank: 'Member', earnings: 0 },
+                    { id: 'e', name: 'Eve', level: 3, position: 'right', active: true, personalPV: 100, totalLeftVol: 0, totalRightVol: 0, rank: 'Member', earnings: 0 }
+                ];
+                alice.children.push({ id: 'f', name: 'Frank', level: 2, position: 'right', active: true, personalPV: 100, totalLeftVol: 0, totalRightVol: 0, rank: 'Member', earnings: 0 });
+
+                s.left += 300;
+                s.nodes[0].totalLeftVol += 300;
+            }
+        }
+
+        // 10. Second Cycle
+        // Left was effectively 100 (from Charlie) + 300 = 400.
+        // Right was 50 (Carryover from step 4/5).
+        // Match 50.
+        if (stepIndex >= 10) {
+            s.earn += 5; // 10% of 50
+            s.nodes[0].totalLeftVol -= 50;
+            s.nodes[0].totalRightVol -= 50;
+        }
+
         return s;
     };
 
 
-    // --- SANDBOX LOGIC ---
+
 
     // Helper to find a node by ID recursively
     const findNode = (root: SimulationNode, id: string): SimulationNode | null => {
@@ -276,7 +346,7 @@ const CommissionSimulation = () => {
         setSandboxLog(prev => [`--- Binary Cycle Run ---`, ...prev]);
     };
 
-    // --- D3 EFFECT ---
+
     useEffect(() => {
         if (!svgRef.current || !containerRef.current) return;
         const width = containerRef.current.clientWidth;
@@ -382,7 +452,7 @@ const CommissionSimulation = () => {
 
     }, [sandboxNodes, mode, currentStep, selectedNodeId]); // Re-render on these changes
 
-    // Timer Logic for Story Mode
+
     useEffect(() => {
         let timer: NodeJS.Timeout;
         if (isPlaying && mode === 'story') {
@@ -416,7 +486,7 @@ const CommissionSimulation = () => {
             </div>
 
             <div className="flex flex-col lg:flex-row gap-6 h-[700px]">
-                {/* Visualizer Area */}
+
                 <div className="flex-1 bg-white dark:bg-[#1a1b23] rounded-2xl border border-gray-200 dark:border-white/5 relative flex flex-col overflow-hidden">
                     <div className="p-4 border-b border-gray-200 dark:border-white/5 flex justify-between items-center bg-gray-50/50 dark:bg-white/[0.02]">
                         <h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -451,7 +521,7 @@ const CommissionSimulation = () => {
                         <svg ref={svgRef} className="w-full h-full"></svg>
                     </div>
 
-                    {/* Sandbox Controls Overlay */}
+
                     {mode === 'sandbox' && (
                         <div className="border-t border-gray-200 dark:border-white/5 p-4 bg-white dark:bg-[#1a1b23]">
                             <div className="flex flex-wrap items-center gap-4">
@@ -475,10 +545,10 @@ const CommissionSimulation = () => {
                     )}
                 </div>
 
-                {/* Sidebar Panel */}
+
                 <div className="lg:w-96 flex flex-col gap-4">
                     {mode === 'story' ? (
-                        // STORY SIDEBAR
+
                         <div className="flex-1 bg-white dark:bg-[#1a1b23] rounded-2xl border border-gray-200 dark:border-white/5 p-6 flex flex-col">
                             <div className="flex items-center gap-2 mb-3">
                                 <div className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
@@ -503,7 +573,7 @@ const CommissionSimulation = () => {
                             </div>
                         </div>
                     ) : (
-                        // SANDBOX SIDEBAR
+
                         <div className="flex-1 flex flex-col gap-4">
                             <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg">
                                 <div className="text-indigo-200 text-xs font-bold uppercase tracking-wider mb-2">My Total Earnings</div>
