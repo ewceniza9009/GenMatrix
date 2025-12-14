@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import TreeVisualizer from '../components/TreeVisualizer';
 import HoldingTank from '../components/HoldingTank';
 import NetworkNodeModal from '../components/NetworkNodeModal'; // Import
+import NetworkStatsOverlay from '../components/NetworkStatsOverlay';
 import { Search, Filter, ZoomIn, ZoomOut, Download, List, ArrowUp, ArrowDown } from 'lucide-react';
 import { useLazySearchDownlineQuery, useGetTreeQuery, useGetUplineQuery } from '../store/api';
 import { useSelector } from 'react-redux';
@@ -224,6 +225,11 @@ const Network = () => {
 
       {/* Main Tree Container */}
       <div className="flex-1 bg-gray-50 dark:bg-slate-900 rounded-xl overflow-hidden shadow-inner border border-gray-200 dark:border-slate-700 relative w-full h-full flex flex-col">
+        {/* Network Stats Overlay */}
+        {treeData && !isTreeLoading && (
+          <NetworkStatsOverlay nodeData={treeData} />
+        )}
+
         {/* Floating Controls (Visual only for now) */}
         <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur p-2 rounded-lg border border-gray-200 dark:border-slate-700/50 shadow-sm">
           <button className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded text-gray-600 dark:text-slate-300"><ZoomIn size={20} /></button>

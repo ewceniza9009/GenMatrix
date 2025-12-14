@@ -39,6 +39,7 @@ interface TreeNode {
     leftPV?: number;
     rightPV?: number;
     personalPV?: number;
+    groupVolume?: number; // Added field
     totalEarned?: number; // Added field
   };
   children: TreeNode[];
@@ -59,6 +60,7 @@ const buildTree = async (node: IUser, depth: number): Promise<TreeNode | null> =
       leftPV: node.currentLeftPV || 0,
       rightPV: node.currentRightPV || 0,
       personalPV: node.personalPV || 0,
+      groupVolume: (node.currentLeftPV || 0) + (node.currentRightPV || 0), // Added Group Volume
       totalEarned: commission ? commission.totalEarned : 0 // Include total earnings
     },
     children: []
@@ -205,6 +207,7 @@ const buildUplineNode = async (user: IUser, childNode?: TreeNode | null): Promis
       active: user.isActive,
       leftPV: user.currentLeftPV || 0,
       rightPV: user.currentRightPV || 0,
+      groupVolume: (user.currentLeftPV || 0) + (user.currentRightPV || 0),
       totalEarned: commission ? commission.totalEarned : 0
     },
     children: childNode ? [childNode] : []
@@ -302,6 +305,7 @@ export const getMemberDetails = async (req: Request, res: Response) => {
         currentLeftPV: member.currentLeftPV,
         currentRightPV: member.currentRightPV,
         personalPV: member.personalPV || 0,
+        groupVolume: (member.currentLeftPV || 0) + (member.currentRightPV || 0), // Added Group Volume
         totalEarned: commission ? commission.totalEarned : 0,
         directRecruits: directRecruitsCount,
         teamSize: totalTeamSize
