@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useGetAllUsersQuery, useUpdateUserRoleMutation } from '../store/api';
+import { useGetAllUsersQuery, useUpdateUserRoleMutation, useToggleUserStatusMutation } from '../store/api';
 import { ShieldCheck } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
@@ -16,15 +16,19 @@ const AdminUsersPage = () => {
     const [search, setSearch] = useState('');
     const [sortConfig, setSortConfig] = useState({ key: 'enrollmentDate', direction: 'desc' });
 
+    const [isActiveFilter, setIsActiveFilter] = useState<string>(''); // ''=All, 'true'=Active, 'false'=Inactive
+
     const { data, isLoading } = useGetAllUsersQuery({
         page,
         limit: 10,
         search,
         sortBy: sortConfig.key,
-        order: sortConfig.direction
+        order: sortConfig.direction,
+        isActive: isActiveFilter
     });
 
     const [updateRole, { isLoading: isUpdating }] = useUpdateUserRoleMutation();
+    const [toggleStatus, { isLoading: isToggling }] = useToggleUserStatusMutation();
 
     const handleRoleChange = async (userId: string, currentRole: string, username: string) => {
         const newRole = currentRole === 'admin' ? 'user' : 'admin';
@@ -37,7 +41,7 @@ const AdminUsersPage = () => {
         showConfirm({
             title: `Change Role to ${newRole.toUpperCase()}?`,
             message: `Are you sure you want to change ${username}'s role to ${newRole.toUpperCase()}?`,
-            type: newRole === 'admin' ? 'info' : 'danger', // Promoting is info, Demoting/Restriction usually danger/warning but here specific
+            type: newRole === 'admin' ? 'info' : 'danger',
             confirmText: 'Yes, Change Role',
             onConfirm: async () => {
                 try {
@@ -50,6 +54,30 @@ const AdminUsersPage = () => {
         });
     };
 
+    const handleStatusChange = async (userId: string, currentStatus: boolean, username: string) => {
+        const newStatus = !currentStatus;
+
+        if (userId === currentUser?._id) {
+            showAlert("You cannot deactivate your own account.", 'warning');
+            return;
+        }
+
+        showConfirm({
+            title: newStatus ? 'Activate User?' : 'Deactivate User?',
+            message: `Are you sure you want to ${newStatus ? 'activate' : 'deactivate'} ${username}?`,
+            type: newStatus ? 'info' : 'danger',
+            confirmText: newStatus ? 'Yes, Activate' : 'Yes, Deactivate',
+            onConfirm: async () => {
+                try {
+                    await toggleStatus({ userId, isActive: newStatus }).unwrap();
+                    showAlert(`User ${newStatus ? 'activated' : 'deactivated'} successfully`, 'success');
+                } catch (err) {
+                    showAlert('Failed to update status', 'error');
+                }
+            }
+        });
+    };
+
     const columns = [
         {
             key: 'username',
@@ -57,10 +85,18 @@ const AdminUsersPage = () => {
             sortable: true,
             render: (user: any) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${user.isActive
+                        ? 'bg-gradient-to-br from-indigo-500 to-purple-600'
+                        : 'bg-gray-400'
+                        }`}>
                         {user.username.substring(0, 2).toUpperCase()}
                     </div>
-                    <span className="font-medium text-gray-900 dark:text-white">{user.username}</span>
+                    <div>
+                        <div className={`font-medium ${user.isActive ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
+                            {user.username}
+                        </div>
+                        {!user.isActive && <span className="text-[10px] text-red-500 font-bold uppercase">Inactive</span>}
+                    </div>
                 </div>
             )
         },
@@ -70,6 +106,23 @@ const AdminUsersPage = () => {
             label: 'Joined',
             sortable: true,
             render: (user: any) => new Date(user.enrollmentDate).toLocaleDateString()
+        },
+        {
+            key: 'isActive',
+            label: 'Status',
+            sortable: true,
+            render: (user: any) => (
+                <button
+                    onClick={() => handleStatusChange(user._id, user.isActive, user.username)}
+                    disabled={isToggling || user._id === currentUser?._id}
+                    className={`px-2 py-1 rounded-full text-xs font-bold border transition-colors ${user.isActive
+                        ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20 hover:bg-green-200 dark:hover:bg-green-500/20'
+                        : 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20 hover:bg-red-200 dark:hover:bg-red-500/20'
+                        }`}
+                >
+                    {user.isActive ? 'Active' : 'Inactive'}
+                </button>
+            )
         },
         {
             key: 'role',
@@ -106,6 +159,17 @@ const AdminUsersPage = () => {
 
     return (
         <div className="space-y-6 animation-fade-in">
+            <div className="flex justify-end gap-2">
+                <select
+                    value={isActiveFilter}
+                    onChange={(e) => setIsActiveFilter(e.target.value)}
+                    className="px-3 py-2 text-sm border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                >
+                    <option value="">All Statuses</option>
+                    <option value="true">Active Only</option>
+                    <option value="false">Inactive Only</option>
+                </select>
+            </div>
             <DataTable
                 title="User Management"
                 columns={columns}

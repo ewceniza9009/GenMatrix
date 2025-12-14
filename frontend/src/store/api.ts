@@ -119,6 +119,14 @@ export const api = createApi({
       }),
       invalidatesTags: ['Admin']
     }),
+    toggleUserStatus: builder.mutation({
+      query: (body) => ({
+        url: 'admin/users/status',
+        method: 'PATCH',
+        body
+      }),
+      invalidatesTags: ['Admin']
+    }),
 
     getPackages: builder.query({
       query: (isAdmin) => `packages${isAdmin ? '?all=true' : ''}`,
@@ -461,6 +469,7 @@ export const {
   useUpdateSettingMutation,
   useGetAllUsersQuery,
   useUpdateUserRoleMutation,
+  useToggleUserStatusMutation,
   useGetAllProductsQuery,
   useCreateProductMutation,
   useUpdateProductMutation,

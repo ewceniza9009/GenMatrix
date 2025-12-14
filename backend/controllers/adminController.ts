@@ -198,6 +198,11 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
     const query: any = { ...search };
 
+    // Filter by Active Status
+    if (req.query.isActive !== undefined && req.query.isActive !== '') {
+      query.isActive = req.query.isActive === 'true';
+    }
+
     const total = await User.countDocuments(query);
     const users = await User.find(query)
       .select('-password') // Exclude password
@@ -239,5 +244,27 @@ export const updateUserRole = async (req: Request, res: Response) => {
     res.json({ message: `User role updated to ${role}` });
   } catch (error) {
     res.status(500).json({ message: 'Error updating user role' });
+  }
+};
+
+export const toggleUserStatus = async (req: Request, res: Response) => {
+  try {
+    const { userId, isActive } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.isActive = isActive;
+    await user.save();
+
+    await SystemLog.create({
+      action: 'USER_STATUS_UPDATE',
+      details: `Updated status for ${user.username} to ${isActive ? 'Active' : 'Inactive'}`,
+      type: 'WARNING'
+    });
+
+    res.json({ message: `User status updated to ${isActive ? 'Active' : 'Inactive'}` });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating user status' });
   }
 };

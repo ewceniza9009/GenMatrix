@@ -1,5 +1,5 @@
 import express from 'express';
-import { getSystemStats, runCommissionRun, getSystemLogs, getCommissionsHistory, getAllUsers, updateUserRole } from '../controllers/adminController';
+import { getSystemStats, runCommissionRun, getSystemLogs, getCommissionsHistory, getAllUsers, updateUserRole, toggleUserStatus } from '../controllers/adminController';
 import { getConfig, updateConfig } from '../controllers/systemController';
 import { protect, admin } from '../middleware/authMiddleware';
 
@@ -16,5 +16,6 @@ router.put('/config', protect, admin, updateConfig);
 // User Management
 router.get('/users', protect, admin, getAllUsers);
 router.put('/users/role', protect, admin, updateUserRole);
+router.patch('/users/status', protect, admin, toggleUserStatus);
 
 export default router;

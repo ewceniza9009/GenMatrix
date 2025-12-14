@@ -64,10 +64,19 @@ const TreeVisualizer = ({ data: treeData, isLoading, error, onNodeClick }: TreeV
 
     const style = getRankStyles(rank);
 
+    // Inactive Override
+    const cardBg = !isOnline
+      ? 'bg-gray-100 dark:bg-slate-900 opacity-75 grayscale'
+      : 'bg-white dark:bg-slate-800';
+
+    const cardBorder = !isOnline
+      ? 'border-gray-300 dark:border-slate-700 border-t-4 border-t-gray-400'
+      : `${style.border} border-t-4 border-r border-b border-l border-gray-100 dark:border-slate-600`;
+
     return (
       <foreignObject width="260" height="200" x="-130" y="-100">
         <div
-          className={`relative bg-white dark:bg-slate-800 rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden border-t-4 ${style.border} border-r border-b border-l border-gray-100 dark:border-slate-600 h-full group`}
+          className={`relative ${cardBg} rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden ${cardBorder} h-full group`}
         >
           {/* Main Click Area for Toggling */}
           <div className="absolute inset-0 z-0 cursor-pointer" onClick={toggleNode} title="Click to Expand/Collapse"></div>
@@ -113,6 +122,11 @@ const TreeVisualizer = ({ data: treeData, isLoading, error, onNodeClick }: TreeV
                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white ${style.bg} shadow-sm bg-opacity-90`}>
                     {rank.toUpperCase()}
                   </span>
+                  {!isOnline && (
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 border border-red-200 uppercase">
+                      INACTIVE
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
