@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import User from '../models/User';
 import Commission from '../models/Commission';
+import Wallet from '../models/Wallet';
 import SystemLog from '../models/SystemLog';
 import { CommissionEngine } from '../services/CommissionEngine';
 import { getPaginationParams, buildSort, buildSearch } from '../utils/queryHelpers';
@@ -12,10 +13,22 @@ export const getSystemStats = async (req: Request, res: Response) => {
       { $group: { _id: null, total: { $sum: '$totalEarned' } } }
     ]);
 
+    // Pending Actions Counts
+    const pendingWithdrawalsCount = await Wallet.countDocuments({
+      'transactions.type': 'WITHDRAWAL',
+      'transactions.status': 'PENDING'
+    });
+
+    const pendingKYCCount = await User.countDocuments({
+      kycStatus: 'pending'
+    });
+
     res.json({
       totalUsers,
       totalCommissions: commissions[0]?.total || 0,
-      timestamp: new Date()
+      timestamp: new Date(),
+      pendingWithdrawalsCount,
+      pendingKYCCount
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching stats' });
@@ -67,6 +80,47 @@ export const getSystemLogs = async (req: Request, res: Response) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching logs' });
+  }
+};
+
+export const getSystemAnalytics = async (req: Request, res: Response) => {
+  try {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const payouts = await Commission.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: thirtyDaysAgo }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          amount: { $sum: "$totalEarned" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Fill in missing days with 0
+    const analyticsData = [];
+    for (let i = 0; i < 30; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - (29 - i));
+      const dateStr = d.toISOString().split('T')[0];
+      const existing = payouts.find(p => p._id === dateStr);
+      analyticsData.push({
+        date: dateStr,
+        amount: existing ? existing.amount : 0
+      });
+    }
+
+    res.json({
+      payouts: analyticsData
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching analytics' });
   }
 };
 

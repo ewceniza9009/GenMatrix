@@ -94,6 +94,9 @@ export const api = createApi({
       query: () => 'admin/stats',
       providesTags: ['Admin'],
     }),
+    getSystemAnalytics: builder.query({
+      query: () => 'admin/analytics/system',
+    }),
     runCommissions: builder.mutation({
       query: () => ({
         url: 'admin/run-commissions',
@@ -456,6 +459,7 @@ export const {
   useGetSystemLogsQuery,
   useGetAdminCommissionsQuery,
   useGetAdminStatsQuery,
+  useGetSystemAnalyticsQuery,
   useGetConfigQuery,
   useUpdateConfigMutation,
   useGetHoldingTankQuery,
