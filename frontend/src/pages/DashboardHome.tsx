@@ -10,6 +10,10 @@ import { useGetWalletQuery, useGetTreeQuery, useGetEarningsAnalyticsQuery, useGe
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 import { useUI } from '../components/UIContext';
+import HypeTicker from '../components/HypeTicker';
+import RankProgress from '../components/RankProgress';
+import ProfitOptimizer from '../components/ProfitOptimizer';
+import FomoAlerts from '../components/FomoAlerts';
 
 const DashboardHome = () => {
   const { showAlert } = useUI();
@@ -48,6 +52,14 @@ const DashboardHome = () => {
 
   return (
     <div className="flex flex-col h-full space-y-6">
+      {/* Live Hype Ticker */}
+      <div className="-mx-6 -mt-6">
+        <HypeTicker />
+      </div>
+
+      {/* FOMO Alerts (Critical) */}
+      <FomoAlerts />
+
       {/* Header & Toggle */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between shrink-0 gap-4">
         <div>
@@ -110,126 +122,151 @@ const DashboardHome = () => {
           </div>
 
 
-          {/* 2. Action Cards Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Quick Actions Bar */}
-            <div className="bg-gradient-to-r from-teal-500 to-emerald-600 p-6 rounded-xl text-white shadow-lg shadow-teal-500/20 flex flex-col justify-between h-full">
-              <div className="mb-4">
-                <h3 className="font-bold text-lg mb-1">Grow Your Network</h3>
-                <p className="text-teal-100 text-sm">Share your referral link to earn bonuses.</p>
-              </div>
+          {/* Main Content Grid: Left (Stats/Charts) & Right (Actions) */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2 bg-white/10 p-1.5 rounded-lg border border-white/20 backdrop-blur-sm w-full">
-                  <code className="px-2 py-1 font-mono text-xs select-all truncate flex-1">{import.meta.env.VITE_FRONTEND_URL || window.location.origin}/ref/{user?.username}</code>
-                  <button
-                    onClick={() => { navigator.clipboard.writeText(`${import.meta.env.VITE_FRONTEND_URL || window.location.origin}/ref/${user?.username}`); showAlert('Copied!', 'success'); }}
-                    className="bg-white text-teal-600 px-3 py-1.5 rounded font-bold text-xs hover:bg-teal-50 transition shrink-0"
-                  >
-                    Copy
-                  </button>
+            {/* LEFT COLUMN (2/3 Width) - Rank & Charts */}
+            <div className="xl:col-span-2 space-y-6">
+
+              {/* Rank Progress (Road to Legend) - Now at Top */}
+              {/* @ts-ignore */}
+              {myDetails?.stats?.rankProgress && (
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-800">
+                  {/* @ts-ignore */}
+                  <RankProgress
+                    currentRank={user?.rank || 'Bronze'}
+                    nextRank={myDetails.stats.rankProgress.nextRank}
+                    progress={myDetails.stats.rankProgress.percent}
+                    amountNeeded={myDetails.stats.rankProgress.amountNeeded}
+                    currentEarnings={myDetails.stats.rankProgress.current}
+                    targetEarnings={myDetails.stats.rankProgress.target}
+                  />
+                </div>
+              )}
+
+              {/* Charts Area */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Earnings Chart */}
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm dark:shadow-none">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                      <TrendingUp size={18} className="text-teal-500" /> Revenue Trend
+                    </h3>
+                    <span className="text-xs font-medium text-green-500 bg-green-50 dark:bg-green-500/10 px-2 py-1 rounded-full">+12.5%</span>
+                  </div>
+                  <div className="h-[250px] w-full min-w-0 relative overflow-hidden">
+                    {earningsLoading ? (
+                      <div className="h-full w-full flex items-center justify-center text-gray-400 dark:text-slate-500 animate-pulse">Loading Chart...</div>
+                    ) : (
+                      <ResponsiveContainer width="99%" height="100%">
+                        <AreaChart data={earningsData || []}>
+                          <defs>
+                            <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3} />
+                              <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" className="dark:stroke-slate-700" />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} tickFormatter={(val) => `$${val}`} />
+                          <Tooltip
+                            contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }}
+                            itemStyle={{ color: '#14b8a6' }}
+                          />
+                          <Area type="monotone" dataKey="amount" stroke="#14b8a6" strokeWidth={3} fillOpacity={1} fill="url(#colorAmount)" activeDot={{ r: 6, strokeWidth: 0 }} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
                 </div>
 
-                <button
-                  onClick={() => window.location.href = '/enroll'}
-                  className="bg-white text-teal-700 hover:bg-teal-50 px-5 py-2.5 rounded-lg font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-black/10 w-full"
-                >
-                  <Users size={18} /> Enroll New Member
-                </button>
+                {/* Growth Chart */}
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm dark:shadow-none">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                      <Users size={18} className="text-indigo-500" /> Team Growth
+                    </h3>
+                  </div>
+                  <div className="h-[250px] w-full min-w-0 relative overflow-hidden">
+                    {growthLoading ? (
+                      <div className="h-full w-full flex items-center justify-center text-gray-400 dark:text-slate-500 animate-pulse">Loading Chart...</div>
+                    ) : (
+                      <ResponsiveContainer width="99%" height="100%">
+                        <BarChart data={growthData || []}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" className="dark:stroke-slate-700" />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
+                          <Tooltip
+                            cursor={{ fill: 'transparent' }}
+                            contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }}
+                          />
+                          <Bar dataKey="recruits" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={30} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Public Shop Link Bar */}
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 rounded-xl text-white shadow-lg shadow-indigo-500/20 flex flex-col justify-between h-full">
-              <div className="mb-4">
-                <h3 className="font-bold text-lg mb-1">Promote Your Shop</h3>
-                <p className="text-indigo-100 text-sm">Share your public shop link to earn retail commissions.</p>
+            {/* RIGHT COLUMN (1/3 Width) - Action Stack */}
+            <div className="space-y-6">
+              {/* Profit Optimizer / Start Your Engines */}
+              <div className="h-auto">
+                <ProfitOptimizer
+                  leftPV={leftPV}
+                  rightPV={rightPV}
+                />
               </div>
 
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2 bg-white/10 p-1.5 rounded-lg border border-white/20 backdrop-blur-sm w-full">
-                  <code className="px-2 py-1 font-mono text-xs select-all truncate flex-1">{import.meta.env.VITE_FRONTEND_URL || window.location.origin}/store?ref={user?.username}</code>
-                  <button
-                    onClick={() => { navigator.clipboard.writeText(`${import.meta.env.VITE_FRONTEND_URL || window.location.origin}/store?ref=${user?.username}`); showAlert('Copied!', 'success'); }}
-                    className="bg-white text-indigo-600 px-3 py-1.5 rounded font-bold text-xs hover:bg-indigo-50 transition shrink-0"
-                  >
-                    Copy
-                  </button>
+              {/* Quick Actions Bar (Grow Your Network) */}
+              <div className="bg-gradient-to-r from-teal-500 to-emerald-600 p-6 rounded-xl text-white shadow-lg shadow-teal-500/20">
+                <div className="mb-4">
+                  <h3 className="font-bold text-lg mb-1">Grow Your Network</h3>
+                  <p className="text-teal-100 text-sm">Share your referral link to earn bonuses.</p>
                 </div>
 
-                <button
-                  onClick={() => window.open(`/store?ref=${user?.username}`, '_blank')}
-                  className="bg-white text-indigo-700 hover:bg-indigo-50 px-5 py-2.5 rounded-lg font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-black/10 w-full"
-                >
-                  <ShoppingBag size={18} /> Visit Shop
-                </button>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 bg-white/10 p-1.5 rounded-lg border border-white/20 backdrop-blur-sm w-full">
+                    <code className="px-2 py-1 font-mono text-xs select-all truncate flex-1">{import.meta.env.VITE_FRONTEND_URL || window.location.origin}/ref/{user?.username}</code>
+                    <button
+                      onClick={() => { navigator.clipboard.writeText(`${import.meta.env.VITE_FRONTEND_URL || window.location.origin}/ref/${user?.username}`); showAlert('Copied!', 'success'); }}
+                      className="bg-white text-teal-600 px-3 py-1.5 rounded font-bold text-xs hover:bg-teal-50 transition shrink-0"
+                    >
+                      Copy
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => window.location.href = '/enroll'}
+                    className="bg-white text-teal-700 hover:bg-teal-50 px-5 py-2.5 rounded-lg font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-black/10 w-full"
+                  >
+                    <Users size={18} /> Enroll New Member
+                  </button>
+                </div>
               </div>
+
+              {/* Public Shop Link Bar */}
+              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 rounded-xl text-white shadow-lg shadow-indigo-500/20">
+                <div className="mb-4">
+                  <h3 className="font-bold text-lg mb-1">Promote Your Shop</h3>
+                  <p className="text-indigo-100 text-sm">Share your public shop link.</p>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 bg-white/10 p-1.5 rounded-lg border border-white/20 backdrop-blur-sm w-full">
+                    <code className="px-2 py-1 font-mono text-xs select-all truncate flex-1">{import.meta.env.VITE_FRONTEND_URL || window.location.origin}/store?ref={user?.username}</code>
+                    <button
+                      onClick={() => { navigator.clipboard.writeText(`${import.meta.env.VITE_FRONTEND_URL || window.location.origin}/store?ref=${user?.username}`); showAlert('Copied!', 'success'); }}
+                      className="bg-white text-indigo-600 px-3 py-1.5 rounded font-bold text-xs hover:bg-indigo-50 transition shrink-0"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
-
-          {/* 3. Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Earnings Chart */}
-            <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm dark:shadow-none">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <TrendingUp size={18} className="text-teal-500" /> Revenue Trend
-                </h3>
-                <span className="text-xs font-medium text-green-500 bg-green-50 dark:bg-green-500/10 px-2 py-1 rounded-full">+12.5% vs last week</span>
-              </div>
-              <div className="h-[250px] w-full min-w-0 relative overflow-hidden">
-                {earningsLoading ? (
-                  <div className="h-full w-full flex items-center justify-center text-gray-400 dark:text-slate-500 animate-pulse">Loading Chart...</div>
-                ) : (
-                  <ResponsiveContainer width="99%" height="100%">
-                    <AreaChart data={earningsData || []}>
-                      <defs>
-                        <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" className="dark:stroke-slate-700" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} tickFormatter={(val) => `$${val}`} />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }}
-                        itemStyle={{ color: '#14b8a6' }}
-                      />
-                      <Area type="monotone" dataKey="amount" stroke="#14b8a6" strokeWidth={3} fillOpacity={1} fill="url(#colorAmount)" activeDot={{ r: 6, strokeWidth: 0 }} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-
-            {/* Growth Chart */}
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm dark:shadow-none">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Users size={18} className="text-indigo-500" /> Team Growth
-                </h3>
-              </div>
-              <div className="h-[250px] w-full min-w-0 relative overflow-hidden">
-                {growthLoading ? (
-                  <div className="h-full w-full flex items-center justify-center text-gray-400 dark:text-slate-500 animate-pulse">Loading Chart...</div>
-                ) : (
-                  <ResponsiveContainer width="99%" height="100%">
-                    <BarChart data={growthData || []}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" className="dark:stroke-slate-700" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
-                      <Tooltip
-                        cursor={{ fill: 'transparent' }}
-                        contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }}
-                      />
-                      <Bar dataKey="recruits" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={30} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-          </div>
-
 
         </div>
       )}

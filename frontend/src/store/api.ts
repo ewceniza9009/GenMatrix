@@ -25,6 +25,14 @@ export const api = createApi({
     getMemberDetails: builder.query({
       query: (memberId) => `network/member/${memberId}`,
     }),
+    getDownline: builder.query({
+      query: (params) => {
+        const cleaned = Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== ''));
+        const qs = new URLSearchParams(cleaned as any).toString();
+        return `network/downline?${qs}`;
+      },
+      providesTags: ['Tree']
+    }),
     login: builder.mutation({
       query: (credentials) => ({
         url: 'auth/login',
@@ -184,6 +192,12 @@ export const api = createApi({
     }),
     getGrowthAnalytics: builder.query({
       query: () => 'analytics/growth',
+    }),
+    getHypeTicker: builder.query({
+      query: () => 'analytics/hype-ticker',
+    }),
+    getFomoAlerts: builder.query({
+      query: () => 'analytics/alerts',
     }),
 
     // Support
@@ -430,6 +444,7 @@ export const {
   useRegisterMutation,
   useGetUplineQuery,
   useGetMemberDetailsQuery,
+  useGetDownlineQuery,
   useGetWalletQuery,
   useRequestWithdrawalMutation,
   useUpdateProfileMutation,
@@ -449,6 +464,8 @@ export const {
   useDeletePackageMutation,
   useGetEarningsAnalyticsQuery,
   useGetGrowthAnalyticsQuery,
+  useGetHypeTickerQuery,
+  useGetFomoAlertsQuery,
   useGetTicketsQuery,
   useGetAllTicketsQuery,
   useCreateTicketMutation,

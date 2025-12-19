@@ -3,8 +3,10 @@ import TreeVisualizer from '../components/TreeVisualizer';
 import HoldingTank from '../components/HoldingTank';
 import NetworkNodeModal from '../components/NetworkNodeModal'; // Import
 import NetworkStatsOverlay from '../components/NetworkStatsOverlay';
-import { Search, Filter, ZoomIn, ZoomOut, Download, List, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Filter, ZoomIn, ZoomOut, Download, List, ArrowUp, Grid, Network as NetworkIcon } from 'lucide-react';
 import { useLazySearchDownlineQuery, useGetTreeQuery, useGetUplineQuery } from '../store/api';
+import ListView from '../components/genealogy/ListView';
+import MatrixTree from '../components/genealogy/MatrixTree';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 
@@ -17,7 +19,7 @@ const Network = () => {
   const [viewingMemberId, setViewingMemberId] = useState<string | null>(null);
 
   // View Mode State
-  const [viewMode, setViewMode] = useState<'downline' | 'upline'>('downline');
+  const [viewMode, setViewMode] = useState<'downline' | 'upline' | 'matrix' | 'list'>('downline');
   const [uplineLevels, setUplineLevels] = useState<number>(5);
 
   // Fetch Tree Data logic
@@ -69,60 +71,90 @@ const Network = () => {
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)] space-y-4">
       {/* ... keeping header ... */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center shrink-0 gap-4">
+      <div className="flex flex-col md:flex-row justify-start items-start md:items-center shrink-0 gap-4 md:gap-6">
         {/* ... */}
 
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          {/* Holding Tank Toggle */}
-          <button
-            onClick={() => setShowHoldingTank(!showHoldingTank)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${showHoldingTank ? 'bg-teal-500 text-white border-teal-500' : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'}`}
-          >
-            <List size={18} />
-            <span className="text-sm font-medium">Holding Tank</span>
-          </button>
-
-          {/* View Mode Toggle */}
-          <div className="flex items-center gap-1 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-1">
+        {/* Mobile: Scrollable Toolbar / Desktop: Flex wrap */}
+        <div className="flex overflow-x-auto md:overflow-visible pb-0 md:pb-0 w-full md:w-auto gap-2 no-scrollbar">
+          <div className="flex items-center bg-gray-100 dark:bg-slate-700/50 p-1 rounded-lg gap-1 min-w-max">
+            {/* Holding Tank Toggle */}
             <button
-              onClick={() => setViewMode('downline')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'downline'
-                ? 'bg-teal-50 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400 shadow-sm'
-                : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+              onClick={() => setShowHoldingTank(!showHoldingTank)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${showHoldingTank
+                ? 'bg-teal-500 text-white shadow-sm'
+                : 'text-gray-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-600'
                 }`}
             >
-              <ArrowDown size={14} />
-              Downline
+              <List size={14} />
+              Holding Tank
+            </button>
+
+            {/* Divider */}
+            <div className="w-px h-6 bg-gray-300 dark:bg-slate-600 mx-1"></div>
+
+            {/* View Mode Toggles */}
+            <button
+              onClick={() => setViewMode('downline')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${viewMode === 'downline'
+                ? 'bg-white text-teal-600 shadow-sm dark:bg-slate-600 dark:text-teal-400'
+                : 'text-gray-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-600'
+                }`}
+            >
+              <NetworkIcon size={14} />
+              Tree
+            </button>
+            <button
+              onClick={() => setViewMode('matrix')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${viewMode === 'matrix'
+                ? 'bg-white text-blue-600 shadow-sm dark:bg-slate-600 dark:text-blue-400'
+                : 'text-gray-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-600'
+                }`}
+            >
+              <Grid size={14} />
+              Matrix
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${viewMode === 'list'
+                ? 'bg-white text-indigo-600 shadow-sm dark:bg-slate-600 dark:text-indigo-400'
+                : 'text-gray-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-600'
+                }`}
+            >
+              <List size={14} />
+              List
             </button>
             <button
               onClick={() => setViewMode('upline')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'upline'
-                ? 'bg-purple-50 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 shadow-sm'
-                : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${viewMode === 'upline'
+                ? 'bg-white text-purple-600 shadow-sm dark:bg-slate-600 dark:text-purple-400'
+                : 'text-gray-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-600'
                 }`}
             >
               <ArrowUp size={14} />
               Upline
             </button>
           </div>
+        </div>
 
-          {/* Upline Level Selector */}
-          {viewMode === 'upline' && (
-            <select
-              value={uplineLevels}
-              onChange={(e) => setUplineLevels(Number(e.target.value))}
-              className="bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-500"
-            >
-              <option value={1}>1 Level Up</option>
-              <option value={2}>2 Levels Up</option>
-              <option value={3}>3 Levels Up</option>
-              <option value={4}>4 Levels Up</option>
-              <option value={5}>5 Levels Up</option>
-            </select>
-          )}
+        {/* Upline Level Selector */}
+        {viewMode === 'upline' && (
+          <select
+            value={uplineLevels}
+            onChange={(e) => setUplineLevels(Number(e.target.value))}
+            className="bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-500"
+          >
+            <option value={1}>1 Level Up</option>
+            <option value={2}>2 Levels Up</option>
+            <option value={3}>3 Levels Up</option>
+            <option value={4}>4 Levels Up</option>
+            <option value={5}>5 Levels Up</option>
+          </select>
+        )}
 
+        {/* Search & Actions Row */}
+        <div className="flex items-center gap-2 w-full md:w-auto">
           {/* Search Input */}
-          <div className="relative flex-grow md:flex-grow-0 group">
+          <div className="relative flex-grow group">
             <div className="relative">
               <input
                 type="text"
@@ -172,12 +204,12 @@ const Network = () => {
           </div>
 
           {/* Action Buttons */}
-          <button className="bg-white dark:bg-slate-800 p-2 rounded-lg text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm dark:shadow-none" title="Filter">
+          <button className="bg-white dark:bg-slate-800 p-2 rounded-lg text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm dark:shadow-none shrink-0" title="Filter">
             <Filter size={20} />
           </button>
           <button
             onClick={handleExport}
-            className="bg-white dark:bg-slate-800 p-2 rounded-lg text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm dark:shadow-none"
+            className="bg-white dark:bg-slate-800 p-2 rounded-lg text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm dark:shadow-none shrink-0"
             title="Export Tree"
           >
             <Download size={20} />
@@ -186,65 +218,82 @@ const Network = () => {
       </div>
 
       {/* Holding Tank Modal Overlay */}
-      {showHoldingTank && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-          {/* Modal Container */}
-          <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <span className="bg-teal-100 dark:bg-teal-500/20 text-teal-700 dark:text-teal-400 p-1.5 rounded-lg">
-                  <List size={18} />
-                </span>
-                Holding Tank
-              </h3>
-              <button
-                onClick={() => setShowHoldingTank(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"
-              >
-                <span className="sr-only">Close</span>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-              </button>
-            </div>
+      {/* Holding Tank Modal Overlay */}
+      {
+        showHoldingTank && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+            {/* Modal Container */}
+            <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 duration-200">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <span className="bg-teal-100 dark:bg-teal-500/20 text-teal-700 dark:text-teal-400 p-1.5 rounded-lg">
+                    <List size={18} />
+                  </span>
+                  Holding Tank
+                </h3>
+                <button
+                  onClick={() => setShowHoldingTank(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                >
+                  <span className="sr-only">Close</span>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
 
-            {/* Modal Content */}
-            <div className="max-h-[80vh] overflow-y-auto">
-              <HoldingTank />
+              {/* Modal Content */}
+              <div className="max-h-[80vh] overflow-y-auto">
+                <HoldingTank />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Node Details Modal */}
-      {viewingMemberId && (
-        <NetworkNodeModal
-          memberId={viewingMemberId}
-          onClose={() => setViewingMemberId(null)}
-        />
-      )}
+      {
+        viewingMemberId && (
+          <NetworkNodeModal
+            memberId={viewingMemberId}
+            onClose={() => setViewingMemberId(null)}
+          />
+        )
+      }
 
       {/* Main Tree Container */}
       <div className="flex-1 bg-gray-50 dark:bg-slate-900 rounded-xl overflow-hidden shadow-inner border border-gray-200 dark:border-slate-700 relative w-full h-full flex flex-col">
-        {/* Network Stats Overlay */}
-        {treeData && !isTreeLoading && (
+        {/* Network Stats Overlay - Only show in Tree/Downline/Upline modes */}
+        {(viewMode === 'downline' || viewMode === 'upline') && treeData && !isTreeLoading && (
           <NetworkStatsOverlay nodeData={treeData} />
         )}
 
-        {/* Floating Controls (Visual only for now) */}
-        <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur p-2 rounded-lg border border-gray-200 dark:border-slate-700/50 shadow-sm">
-          <button className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded text-gray-600 dark:text-slate-300"><ZoomIn size={20} /></button>
-          <button className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded text-gray-600 dark:text-slate-300"><ZoomOut size={20} /></button>
-        </div>
+        {/* Floating Controls (Visual only for now) - Only Tree Mode */}
+        {(viewMode === 'downline' || viewMode === 'upline') && (
+          <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur p-2 rounded-lg border border-gray-200 dark:border-slate-700/50 shadow-sm">
+            <button className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded text-gray-600 dark:text-slate-300"><ZoomIn size={20} /></button>
+            <button className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded text-gray-600 dark:text-slate-300"><ZoomOut size={20} /></button>
+          </div>
+        )}
 
-        {/* The Tree Component */}
-        <TreeVisualizer
-          data={treeData}
-          isLoading={isTreeLoading}
-          error={treeError}
-          onNodeClick={(id) => setViewingMemberId(id)}
-        />
+        {/* Render Content Based on View Mode */}
+        {viewMode === 'list' ? (
+          <div className="h-full p-0">
+            <ListView />
+          </div>
+        ) : viewMode === 'matrix' ? (
+          <div className="h-full overflow-hidden">
+            <MatrixTree />
+          </div>
+        ) : (
+          <TreeVisualizer
+            data={treeData}
+            isLoading={isTreeLoading}
+            error={treeError}
+            onNodeClick={(id) => setViewingMemberId(id)}
+          />
+        )}
       </div>
-    </div>
+    </div >
   );
 };
 

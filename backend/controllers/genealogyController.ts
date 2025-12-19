@@ -308,12 +308,133 @@ export const getMemberDetails = async (req: Request, res: Response) => {
         groupVolume: (member.currentLeftPV || 0) + (member.currentRightPV || 0), // Added Group Volume
         totalEarned: commission ? commission.totalEarned : 0,
         directRecruits: directRecruitsCount,
-        teamSize: totalTeamSize
+        teamSize: totalTeamSize,
+        rankProgress: calculateRankProgress(member.rank, commission ? commission.totalEarned : 0)
       }
     });
 
   } catch (err) {
     console.error('Get Member Details Error:', err);
     res.status(500).json({ message: 'Server error retrieving member details' });
+  }
+};
+
+// Helper: Calculate Rank Progress
+const calculateRankProgress = (currentRank: string, totalEarned: number) => {
+  let nextRank = 'Max Rank';
+  let target = 0;
+  let prevTarget = 0;
+
+  switch (currentRank) {
+    case 'Bronze':
+      nextRank = 'Silver';
+      target = 1000;
+      prevTarget = 0;
+      break;
+    case 'Silver':
+      nextRank = 'Gold';
+      target = 5000;
+      prevTarget = 1000;
+      break;
+    case 'Gold':
+      nextRank = 'Diamond';
+      target = 20000;
+      prevTarget = 5000;
+      break;
+    case 'Diamond':
+      // Fix: If user is Diamond (e.g. Admin or manual grant) but hasn't earned the target, 
+      // show actual progress towards the financial target instead of 100% "Pinnacle".
+      if (totalEarned < 20000) {
+        return {
+          nextRank: 'Diamond',
+          target: 20000,
+          current: totalEarned,
+          percent: parseFloat(((totalEarned / 20000) * 100).toFixed(1)),
+          amountNeeded: 20000 - totalEarned
+        };
+      }
+      return {
+        nextRank: 'Diamond',
+        target: 20000,
+        current: totalEarned,
+        percent: 100,
+        amountNeeded: 0
+      };
+    default:
+      // Fallback or custom ranks
+      nextRank = 'Unknown';
+      target = 1000;
+  }
+
+  // Calculate percentage relative to the *gap* between ranks? 
+  // Or absolute from 0? Usually absolute from 0 is clearer for "Total Earnings".
+  // Let's do absolute % for simpler "Road to X".
+
+  let percent = (totalEarned / target) * 100;
+  if (percent > 100) percent = 100;
+
+  // Amount needed
+  const amountNeeded = Math.max(0, target - totalEarned);
+
+  return {
+    nextRank,
+    target,
+    current: totalEarned,
+    percent: parseFloat(percent.toFixed(1)),
+    amountNeeded
+  };
+};
+
+// Get Downline (List View)
+export const getDownline = async (req: Request, res: Response) => {
+  try {
+    const { page = 1, limit = 50, search = '' } = req.query;
+    // @ts-ignore
+    const currentUserId = req.user._id;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Base query: All users who have currentUserId in their path
+    // Path format: ,rootId,ancestorId,parentId,
+    const userIdStr = String(currentUserId);
+    console.log(`[getDownline] User: ${userIdStr} (stringified)`);
+    console.log(`[getDownline] Path Regex: ,${userIdStr},`);
+
+    const queryConditions: any = {
+      path: { $regex: `,${userIdStr},` }
+    };
+
+    if (search) {
+      queryConditions.$or = [
+        { username: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { firstName: { $regex: search, $options: 'i' } },
+        { lastName: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const total = await User.countDocuments(queryConditions);
+
+    const users = await User.find(queryConditions)
+      .select('username email rank isActive enrollmentDate currentLeftPV currentRightPV personalPV sponsorId')
+      .populate('sponsorId', 'username')
+      .sort({ enrollmentDate: -1 }) // Newest first
+      .skip(skip)
+      .limit(limitNum);
+
+    res.json({
+      data: users,
+      meta: {
+        total,
+        page: pageNum,
+        totalPages: Math.ceil(total / limitNum)
+      }
+    });
+
+  } catch (err) {
+    console.error('Get Downline Error:', err);
+    res.status(500).json({ message: 'Server error retrieving downline' });
   }
 };

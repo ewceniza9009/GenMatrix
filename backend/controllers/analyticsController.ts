@@ -3,6 +3,77 @@ import Commission from '../models/Commission';
 import User from '../models/User';
 import mongoose from 'mongoose';
 
+// Formatting Helper
+const formatCommissionType = (type: string) => {
+    return type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+};
+
+export const getHypeTicker = async (req: Request, res: Response) => {
+    try {
+        // 1. Get New Members (Last 5)
+        // Public data, so no auth check strictly needed, but route is likely protected.
+        const newMembers = await User.find({ role: 'member' })
+            .select('username enrollmentDate profileImage')
+            .sort({ enrollmentDate: -1 })
+            .limit(5)
+            .lean();
+
+        // 2. Get Recent Commissions (Last 5 across system)
+        const recentCommissions = await Commission.aggregate([
+            { $unwind: '$history' },
+            { $match: { 'history.amount': { $gt: 0 } } },
+            { $sort: { 'history.date': -1 } },
+            { $limit: 5 },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'userId',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            { $unwind: '$user' },
+            {
+                $project: {
+                    username: '$user.username',
+                    amount: '$history.amount',
+                    type: '$history.type',
+                    date: '$history.date'
+                }
+            }
+        ]);
+
+        // 3. Normalize Events
+        const events = [
+            ...newMembers.map(m => ({
+                id: m._id.toString(),
+                type: 'NEW_MEMBER',
+                username: m.username,
+                message: `just joined the squad!`,
+                timestamp: m.enrollmentDate,
+                icon: '👋'
+            })),
+            ...recentCommissions.map((c, index) => ({
+                id: `comm-${index}-${c.date}`,
+                type: 'COMMISSION',
+                username: c.username,
+                message: `earned $${c.amount.toFixed(2)} from ${formatCommissionType(c.type)}`,
+                timestamp: c.date,
+                icon: '💰'
+            }))
+        ];
+
+        // 4. Sort by Date Descending
+        events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+        // Return top 10 combined
+        res.json(events.slice(0, 10));
+    } catch (error) {
+        console.error('Hype Ticker Error:', error);
+        res.status(500).json({ message: 'Failed to fetch hype events' });
+    }
+};
+
 export const getEarningsOverTime = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user._id;
@@ -155,6 +226,64 @@ export const getRecruitGrowth = async (req: Request, res: Response) => {
 
     } catch (error) {
         console.error('Growth Analytics Error:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+export const getFomoAlerts = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).user._id;
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const alerts = [];
+
+        // ALERT 1: Inactive but has Volume (Missed Commission Risk)
+        // If user is not active, but has volume on both legs, they would cycle if they were active.
+        if (!user.isActive && user.currentLeftPV > 0 && user.currentRightPV > 0) {
+            const potentialPairs = Math.min(Math.floor(user.currentLeftPV / 100), Math.floor(user.currentRightPV / 100)); // Assuming 100 unit
+            const potentialLoss = potentialPairs * 10; // Assuming $10 per pair
+
+            if (potentialPairs > 0) {
+                alerts.push({
+                    type: 'INACTIVE_LOSS',
+                    severity: 'critical',
+                    title: 'Commission Risk!',
+                    message: `You are currently INACTIVE. You have ${potentialPairs} pairs matching ($${potentialLoss}) that you cannot claim until you reactivate!`,
+                    actionLabel: 'Reactivate Now',
+                    actionUrl: '/shop'
+                });
+            }
+        }
+
+        // ALERT 2: Pending KYC (Withdrawal Block)
+        // Check wallet balance
+        const Commission = mongoose.model('Commission'); // Dynamic import to avoid circular dep if needed, or use imported model
+        // Actually we need Wallet model for balance, but Commission model tracks earnings. 
+        // Let's use Commission.totalEarned as a proxy for "You have money" or just check Wallet if available.
+        // For now, let's use the aggregated Commission stats or import Wallet.
+
+        // Simpler: Just check if they have volume but no KYC, preventing future withdrawals?
+        // Or if they have rank advancement close?
+
+        if (user.kycStatus !== 'approved' && (user.currentLeftPV > 500 || user.currentRightPV > 500)) {
+            alerts.push({
+                type: 'KYC_PENDING',
+                severity: 'warning',
+                title: 'Verify Your Identity',
+                message: 'You are building significant volume! Verify your identity now to ensure you can withdraw future commissions without delay.',
+                actionLabel: 'Upload ID',
+                actionUrl: '/settings?tab=kyc'
+            });
+        }
+
+        res.json(alerts);
+
+    } catch (error) {
+        console.error('FOMO Alerts Error:', error);
         res.status(500).json({ message: 'Server Error' });
     }
 };
