@@ -8,6 +8,7 @@ import SystemSetting from '../models/SystemSetting';
 import { CommissionEngine } from '../services/CommissionEngine';
 import { activateUser } from '../services/userActivationService';
 import { getPaginationParams, buildSort } from '../utils/queryHelpers';
+import { withTransaction } from '../utils/transactionHelper';
 
 // Helper to get setting (Duplicated from productController - potentially extract to service later)
 const getSetting = async (key: string): Promise<boolean> => {
@@ -16,166 +17,161 @@ const getSetting = async (key: string): Promise<boolean> => {
 };
 
 // Create Order (Members & Guests)
+// Create Order (Members & Guests)
 export const createOrder = async (req: Request, res: Response) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
-        const userId = (req as any).user?.id; // Authed User
-        const { items, guestDetails, referrerId, paymentMethod = 'WALLET' } = req.body;
+        const result = await withTransaction(async (session) => {
+            const userId = (req as any).user?.id; // Authed User
+            const { items, guestDetails, referrerId, paymentMethod = 'WALLET' } = req.body;
 
-        const isGuest = !userId;
+            const isGuest = !userId;
 
-        // 1. Get System Settings
-        const enableShop = await getSetting('enableShop');
-        const enablePublicShop = await getSetting('enablePublicShop');
+            // 1. Get System Settings
+            const enableShop = await getSetting('enableShop');
+            const enablePublicShop = await getSetting('enablePublicShop');
 
-        // Gatekeeping
-        if (isGuest && !enablePublicShop) {
-            await session.abortTransaction(); session.endSession();
-            return res.status(403).json({ message: 'Public Shop is disabled' });
-        }
-        if (!isGuest && !enableShop) {
-            await session.abortTransaction(); session.endSession();
-            return res.status(403).json({ message: 'Member Shop is disabled' });
-        }
-
-        if (!items || items.length === 0) {
-            await session.abortTransaction(); session.endSession();
-            return res.status(400).json({ message: 'No items in order' });
-        }
-
-        // 2. Process Items
-        let totalAmount = 0;
-        let totalPV = 0;
-        let totalRetailProfit = 0;
-        const orderItems = [];
-
-        for (const item of items) {
-            const product = await Product.findById(item.productId);
-            if (!product || !product.isActive) {
-                await session.abortTransaction(); session.endSession();
-                return res.status(400).json({ message: `Unavailable: ${item.productId}` });
+            // Gatekeeping
+            if (isGuest && !enablePublicShop) {
+                throw { status: 403, message: 'Public Shop is disabled' };
             }
-            if (product.stock < item.quantity) {
-                await session.abortTransaction(); session.endSession();
-                return res.status(400).json({ message: `Out of stock: ${product.name}` });
+            if (!isGuest && !enableShop) {
+                throw { status: 403, message: 'Member Shop is disabled' };
             }
 
-            // Pricing Logic
-            const unitPrice = isGuest ? (product.retailPrice || product.price) : product.price;
-            const linePrice = unitPrice * item.quantity;
-            const linePV = product.pv * item.quantity;
-
-            // Calculate Profit per item for Guests
-            if (isGuest) {
-                const memberCost = product.price * item.quantity;
-                totalRetailProfit += (linePrice - memberCost);
+            if (!items || items.length === 0) {
+                throw { status: 400, message: 'No items in order' };
             }
 
-            totalAmount += linePrice;
-            totalPV += linePV;
+            // 2. Process Items
+            let totalAmount = 0;
+            let totalPV = 0;
+            let totalRetailProfit = 0;
+            const orderItems = [];
 
-            orderItems.push({
-                productId: product._id,
-                name: product.name,
-                price: unitPrice, // Charged Price
-                retailPrice: product.retailPrice, // Reference
-                pv: product.pv,
-                quantity: item.quantity,
-                totalPrice: linePrice,
-                totalPV: linePV
-            });
-        }
-
-        // 3. Payment Processing
-        let orderStatus = 'PAID';
-
-        // MEMBER: Wallet Deduction (Only if paymentMethod is WALLET)
-        if (!isGuest && paymentMethod === 'WALLET') {
-            const wallet = await Wallet.findOne({ userId }).session(session);
-            if (!wallet || wallet.balance < totalAmount) {
-                await session.abortTransaction(); session.endSession();
-                return res.status(400).json({ message: 'Insufficient wallet balance' });
-            }
-
-            wallet.balance -= totalAmount;
-            wallet.transactions.push({
-                type: 'PURCHASE',
-                amount: totalAmount,
-                description: `Order Payment - ${orderItems.length} items`,
-                date: new Date(),
-                status: 'COMPLETED'
-            } as any);
-            await wallet.save({ session });
-        }
-        else if (paymentMethod === 'CASH') {
-            orderStatus = 'PENDING';
-        }
-        // GUEST or MEMBER via CREDIT_CARD: Assume Payment Gateway Success
-        else {
-            // For future PayPal here.
-        }
-
-        // 4. Create Order Record
-        const order = await Order.create([{
-            userId: userId || undefined,
-            referrerId: isGuest ? referrerId : undefined,
-            isGuest,
-            guestDetails: isGuest ? guestDetails : undefined,
-            items: orderItems,
-            totalAmount,
-            totalPV,
-            status: orderStatus,
-            paymentMethod: isGuest ? 'CREDIT_CARD' : paymentMethod
-        }], { session });
-
-        // 5. Inventory Update
-        for (const item of orderItems) {
-            await Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } }, { session });
-        }
-
-        // --- SKIP ACTIVATION IF PENDING ---
-        if (orderStatus === 'PAID') {
-            // 5b. Activate User
-            if (userId) {
-                await activateUser(userId, totalAmount, session);
-            }
-
-            // 6. Commission & Profit Distribution
-            const beneficiaryId = isGuest ? referrerId : userId;
-
-            if (beneficiaryId) {
-                // A. Distribute Retail Profit (Guests Only)
-                if (isGuest && totalRetailProfit > 0) {
-                    const refWallet = await Wallet.findOne({ userId: referrerId }).session(session);
-                    if (refWallet) {
-                        refWallet.balance += totalRetailProfit;
-                        refWallet.transactions.push({
-                            type: 'BONUS', // Generic bonus type or new RETAIL_PROFIT
-                            amount: totalRetailProfit,
-                            description: `Retail Profit from Guest Order #${order[0]._id}`,
-                            date: new Date(),
-                            status: 'COMPLETED'
-                        } as any);
-                        await refWallet.save({ session });
-                    }
+            for (const item of items) {
+                const product = await Product.findById(item.productId).session(session || null); // Session read
+                if (!product || !product.isActive) {
+                    throw { status: 400, message: `Unavailable: ${item.productId}` };
+                }
+                if (product.stock < item.quantity) {
+                    throw { status: 400, message: `Out of stock: ${product.name}` };
                 }
 
-                // B. Propagate PV
-                await CommissionEngine.updateUplinePV(beneficiaryId, totalPV, session);
-                await CommissionEngine.addPersonalPV(beneficiaryId, totalPV, session);
+                // Pricing Logic
+                const unitPrice = isGuest ? (product.retailPrice || product.price) : product.price;
+                const linePrice = unitPrice * item.quantity;
+                const linePV = product.pv * item.quantity;
+
+                // Calculate Profit per item for Guests
+                if (isGuest) {
+                    const memberCost = product.price * item.quantity;
+                    totalRetailProfit += (linePrice - memberCost);
+                }
+
+                totalAmount += linePrice;
+                totalPV += linePV;
+
+                orderItems.push({
+                    productId: product._id,
+                    name: product.name,
+                    price: unitPrice, // Charged Price
+                    retailPrice: product.retailPrice, // Reference
+                    pv: product.pv,
+                    quantity: item.quantity,
+                    totalPrice: linePrice,
+                    totalPV: linePV
+                });
             }
+
+            // 3. Payment Processing
+            let orderStatus = 'PAID';
+
+            // MEMBER: Wallet Deduction (Only if paymentMethod is WALLET)
+            if (!isGuest && paymentMethod === 'WALLET') {
+                const wallet = await Wallet.findOne({ userId }).session(session || null);
+                if (!wallet || wallet.balance < totalAmount) {
+                    throw { status: 400, message: 'Insufficient wallet balance' };
+                }
+
+                wallet.balance -= totalAmount;
+                wallet.transactions.push({
+                    type: 'PURCHASE',
+                    amount: totalAmount,
+                    description: `Order Payment - ${orderItems.length} items`,
+                    date: new Date(),
+                    status: 'COMPLETED'
+                } as any);
+                await wallet.save({ session });
+            }
+            else if (paymentMethod === 'CASH') {
+                orderStatus = 'PENDING';
+            }
+            // GUEST or MEMBER via CREDIT_CARD: Assume Payment Gateway Success
+            else {
+                // For future PayPal here.
+            }
+
+            // 4. Create Order Record
+            const order = await Order.create([{
+                userId: userId || undefined,
+                referrerId: isGuest ? referrerId : undefined,
+                isGuest,
+                guestDetails: isGuest ? guestDetails : undefined,
+                items: orderItems,
+                totalAmount,
+                totalPV,
+                status: orderStatus,
+                paymentMethod: isGuest ? 'CREDIT_CARD' : paymentMethod
+            }], { session });
+
+            // 5. Inventory Update
+            for (const item of orderItems) {
+                await Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } }, { session });
+            }
+
+            // --- SKIP ACTIVATION IF PENDING ---
+            if (orderStatus === 'PAID') {
+                // 5b. Activate User
+                if (userId) {
+                    await activateUser(userId, totalAmount, session);
+                }
+
+                // 6. Commission & Profit Distribution
+                const beneficiaryId = isGuest ? referrerId : userId;
+
+                if (beneficiaryId) {
+                    // A. Distribute Retail Profit (Guests Only)
+                    if (isGuest && totalRetailProfit > 0) {
+                        const refWallet = await Wallet.findOne({ userId: referrerId }).session(session || null);
+                        if (refWallet) {
+                            refWallet.balance += totalRetailProfit;
+                            refWallet.transactions.push({
+                                type: 'BONUS', // Generic bonus type or new RETAIL_PROFIT
+                                amount: totalRetailProfit,
+                                description: `Retail Profit from Guest Order #${order[0]._id}`,
+                                date: new Date(),
+                                status: 'COMPLETED'
+                            } as any);
+                            await refWallet.save({ session });
+                        }
+                    }
+
+                    // B. Propagate PV
+                    await CommissionEngine.updateUplinePV(beneficiaryId, totalPV, session);
+                    await CommissionEngine.addPersonalPV(beneficiaryId, totalPV, session);
+                }
+            }
+
+            return order[0];
+        });
+
+        res.status(201).json(result);
+
+    } catch (error: any) {
+        if (error.status) {
+            return res.status(error.status).json({ message: error.message });
         }
-
-        await session.commitTransaction();
-        session.endSession();
-
-        res.status(201).json(order[0]);
-
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        console.error(error);
+        console.error('Order Creation Error:', error);
         res.status(500).json({ message: 'Error processing order' });
     }
 };
@@ -252,42 +248,42 @@ const isValidObjectId = (id: string) => {
 
 // Admin: Update Order Status
 export const updateOrderStatus = async (req: Request, res: Response) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
-        const { id } = req.params;
-        const { status } = req.body;
+        const result = await withTransaction(async (session) => {
+            const { id } = req.params;
+            const { status } = req.body;
 
-        const order = await Order.findById(id).session(session);
-        if (!order) {
-            await session.abortTransaction(); session.endSession();
-            return res.status(404).json({ message: 'Order not found' });
-        }
-
-        const oldStatus = order.status;
-        order.status = status;
-        await order.save({ session });
-
-        // Trigger Activation if PENDING -> PAID
-        if (oldStatus === 'PENDING' && status === 'PAID') {
-            if (order.userId) {
-                const userId = order.userId.toString();
-                // 1. Activate User
-                await activateUser(userId, order.totalAmount, session);
-
-                // 2. Propagate PV
-                await CommissionEngine.updateUplinePV(userId, order.totalPV, session);
-                await CommissionEngine.addPersonalPV(userId, order.totalPV, session);
+            const order = await Order.findById(id).session(session || null);
+            if (!order) {
+                throw { status: 404, message: 'Order not found' };
             }
-        }
 
-        await session.commitTransaction();
-        session.endSession();
-        res.json(order);
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        console.error(error);
+            const oldStatus = order.status;
+            order.status = status;
+            await order.save({ session });
+
+            // Trigger Activation if PENDING -> PAID
+            if (oldStatus === 'PENDING' && status === 'PAID') {
+                if (order.userId) {
+                    const userId = order.userId.toString();
+                    // 1. Activate User
+                    await activateUser(userId, order.totalAmount, session);
+
+                    // 2. Propagate PV
+                    await CommissionEngine.updateUplinePV(userId, order.totalPV, session);
+                    await CommissionEngine.addPersonalPV(userId, order.totalPV, session);
+                }
+            }
+
+            return order;
+        });
+
+        res.json(result);
+    } catch (error: any) {
+        if (error.status) {
+            return res.status(error.status).json({ message: error.message });
+        }
+        console.error('Update Order Error:', error);
         res.status(500).json({ message: 'Error updating order' });
     }
 };

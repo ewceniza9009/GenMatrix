@@ -12,7 +12,7 @@ import mongoose from 'mongoose';
  * Activates a user, finalized their enrollment, and places them in the network
  * (unless Holding Tank is enabled).
  */
-export const activateUser = async (userId: string, activatorOrderAmount: number = 0, session?: mongoose.ClientSession): Promise<void> => {
+export const activateUser = async (userId: string, amountPaid: number, session: mongoose.ClientSession | undefined = undefined): Promise<void> => {
     try {
         const user = await User.findById(userId).session(session || null);
         if (!user) throw new Error('User not found');
@@ -75,13 +75,13 @@ export const activateUser = async (userId: string, activatorOrderAmount: number 
                 let baseAmount = 0;
                 let pvAmount = 0;
 
-                if (activatorOrderAmount) {
+                if (amountPaid) {
                     // SHOP FIRST ACTIVATION
                     // Triggered by Order Payment.
                     // We use the Order Amount for the Referral Bonus.
                     // We set PV to 0 here because the Order Controller handles the Product PV separately.
-                    console.log(`[ActivateUser] Shop First: Using Order Amount $${activatorOrderAmount} as base. Ignoring Package PV to prevent double-counting.`);
-                    baseAmount = activatorOrderAmount;
+                    console.log(`[ActivateUser] Shop First: Using Order Amount $${amountPaid} as base. Ignoring Package PV to prevent double-counting.`);
+                    baseAmount = amountPaid;
                     pvAmount = 0;
                 } else if (user.enrollmentPackage) {
                     // PACKAGE INCLUDED ACTIVATION
@@ -98,6 +98,18 @@ export const activateUser = async (userId: string, activatorOrderAmount: number 
                 // Distribute Direct Referral Bonus
                 if (baseAmount > 0) {
                     await CommissionEngine.distributeReferralBonus(sponsor.id, savedUser._id.toString(), baseAmount, session);
+                }
+
+                if (amountPaid > 0) {
+                    // 4a. Distribute Commission (Referral Bonus)
+                    // Logic: Is there a sponsor?
+                    if (user.sponsorId) {
+                        // Determine Enrollment Package Price vs. Shop Order
+                        // For simplicity here, we treat the entire order amount as commissionable for Referral Bonus
+                        // In a real app, you might have separate BV/CV.
+                        console.log(`Distributing Referral Bonus on $${amountPaid}`);
+                        await CommissionEngine.distributeReferralBonus(user.sponsorId.toString(), user._id.toString(), amountPaid, session);
+                    }
                 }
 
                 // Distribute PV

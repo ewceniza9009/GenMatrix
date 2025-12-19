@@ -273,7 +273,7 @@ export class CommissionEngine {
   }
 
   // 6. Add Personal PV (Tracking only)
-  static async addPersonalPV(userId: string, pvAmount: number, session?: mongoose.ClientSession) {
+  static async addPersonalPV(userId: string, pvAmount: number, session?: mongoose.ClientSession | undefined) {
     if (pvAmount <= 0) return;
     const user = await User.findById(userId).session(session || null);
     if (!user) return;
@@ -284,7 +284,7 @@ export class CommissionEngine {
   }
 
   // Helper: Credit Wallet
-  private static async creditWallet(userId: string, amount: number, type: string, description: string, session?: mongoose.ClientSession) {
+  private static async creditWallet(userId: string, amount: number, type: string, description: string, session?: mongoose.ClientSession | undefined) {
     let wallet = await Wallet.findOne({ userId }).session(session || null);
     if (!wallet) wallet = new Wallet({ userId, balance: 0 });
 

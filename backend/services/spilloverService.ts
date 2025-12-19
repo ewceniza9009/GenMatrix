@@ -12,19 +12,19 @@ interface PlacementResult {
   position: 'left' | 'right';
 }
 
-const findPlacement = async (sponsorId: string | Types.ObjectId, preference: string = 'weaker_leg', session?: mongoose.ClientSession): Promise<PlacementResult> => {
+const findPlacement = async (sponsorId: string | Types.ObjectId, preference: string = 'weaker_leg', session: mongoose.ClientSession | undefined = undefined): Promise<PlacementResult> => {
   const sponsor = await User.findById(sponsorId).session(session || null);
   if (!sponsor) throw new Error('Sponsor not found');
 
   // Extreme Left/Right
   if (preference === 'extreme_left' || preference === 'left') {
     if (!sponsor.leftChildId) return { parentId: sponsor._id as Types.ObjectId, position: 'left' };
-    return traverseExtreme(sponsor.leftChildId, 'left');
+    return traverseExtreme(sponsor.leftChildId, 'left', session);
   }
 
   if (preference === 'extreme_right' || preference === 'right') {
     if (!sponsor.rightChildId) return { parentId: sponsor._id as Types.ObjectId, position: 'right' };
-    return traverseExtreme(sponsor.rightChildId, 'right');
+    return traverseExtreme(sponsor.rightChildId, 'right', session);
   }
 
   // Multi-Center (Placeholder - demo usually sticks to basic, but we can default to balanced or specific logic)
@@ -44,9 +44,9 @@ const findPlacement = async (sponsorId: string | Types.ObjectId, preference: str
     const rightCount = await User.countDocuments({ path: { $regex: `,${sponsor.rightChildId.toString()},` } }).session(session || null);
 
     if (leftCount <= rightCount) {
-      return traverseToFirstEmpty(sponsor.leftChildId);
+      return traverseToFirstEmpty(sponsor.leftChildId, session);
     } else {
-      return traverseToFirstEmpty(sponsor.rightChildId);
+      return traverseToFirstEmpty(sponsor.rightChildId, session);
     }
   }
 
@@ -79,14 +79,14 @@ const findPlacement = async (sponsorId: string | Types.ObjectId, preference: str
     const rightCount = await User.countDocuments({ path: { $regex: `,${sponsor.rightChildId.toString()},` } }).session(session || null);
 
     if (leftCount <= rightCount) {
-      return traverseToFirstEmpty(sponsor.leftChildId);
+      return traverseToFirstEmpty(sponsor.leftChildId, session);
     } else {
-      return traverseToFirstEmpty(sponsor.rightChildId);
+      return traverseToFirstEmpty(sponsor.rightChildId, session);
     }
   }
 };
 
-const traverseExtreme = async (nodeId: Types.ObjectId, side: 'left' | 'right', session?: mongoose.ClientSession): Promise<PlacementResult> => {
+const traverseExtreme = async (nodeId: Types.ObjectId, side: 'left' | 'right', session: mongoose.ClientSession | undefined = undefined): Promise<PlacementResult> => {
   let currentId = nodeId;
   while (true) {
     const node = await User.findById(currentId).session(session || null);
@@ -102,7 +102,7 @@ const traverseExtreme = async (nodeId: Types.ObjectId, side: 'left' | 'right', s
   }
 };
 
-const traverseToFirstEmpty = async (startNodeId: Types.ObjectId, session?: mongoose.ClientSession): Promise<PlacementResult> => {
+const traverseToFirstEmpty = async (startNodeId: Types.ObjectId, session: mongoose.ClientSession | undefined = undefined): Promise<PlacementResult> => {
   const queue: Types.ObjectId[] = [startNodeId];
 
   while (queue.length > 0) {
