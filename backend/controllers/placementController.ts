@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import User from '../models/User';
 import { CommissionEngine } from '../services/CommissionEngine';
 import spilloverService from '../services/spilloverService';
@@ -16,23 +17,28 @@ export const getHoldingTank = async (req: Request, res: Response) => {
 };
 
 export const placeUserManually = async (req: Request, res: Response) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
         const { userId, targetParentId, position } = req.body;
         const sponsorId = (req as any).user._id;
         const cleanParentId = targetParentId && typeof targetParentId === 'string' ? targetParentId.trim() : targetParentId;
 
-        const userToPlace = await User.findById(userId).populate('enrollmentPackage');
+        const userToPlace = await User.findById(userId).populate('enrollmentPackage').session(session);
         if (!userToPlace || userToPlace.isPlaced) {
+            await session.abortTransaction(); session.endSession();
             return res.status(400).json({ message: 'User not valid for placement' });
         }
 
         // Check if user is active (paid)
         if (userToPlace.status !== 'active') {
+            await session.abortTransaction(); session.endSession();
             return res.status(400).json({ message: 'User is not active (unpaid) and cannot be placed.' });
         }
 
         // Security: Ensure logged in user is the sponsor
         if (userToPlace.sponsorId?.toString() !== sponsorId.toString()) {
+            await session.abortTransaction(); session.endSession();
             return res.status(403).json({ message: 'Not authorized to place this user' });
         }
 
@@ -43,15 +49,24 @@ export const placeUserManually = async (req: Request, res: Response) => {
         if (cleanParentId) {
             // Direct Parent Selection
             if (cleanParentId.match(/^[0-9a-fA-F]{24}$/)) {
-                parent = await User.findById(cleanParentId);
+                parent = await User.findById(cleanParentId).session(session);
             } else {
-                parent = await User.findOne({ username: cleanParentId });
+                parent = await User.findOne({ username: cleanParentId }).session(session);
             }
-            if (!parent) return res.status(404).json({ message: `Target parent '${cleanParentId}' not found` });
+            if (!parent) {
+                await session.abortTransaction(); session.endSession();
+                return res.status(404).json({ message: `Target parent '${cleanParentId}' not found` });
+            }
 
             // Check if spot is empty
-            if (position === 'left' && parent.leftChildId) return res.status(400).json({ message: 'Left spot occupied' });
-            if (position === 'right' && parent.rightChildId) return res.status(400).json({ message: 'Right spot occupied' });
+            if (position === 'left' && parent.leftChildId) {
+                await session.abortTransaction(); session.endSession();
+                return res.status(400).json({ message: 'Left spot occupied' });
+            }
+            if (position === 'right' && parent.rightChildId) {
+                await session.abortTransaction(); session.endSession();
+                return res.status(400).json({ message: 'Right spot occupied' });
+            }
 
             // Perform Placement Actions
             userToPlace.parentId = parent._id as any;
@@ -59,7 +74,7 @@ export const placeUserManually = async (req: Request, res: Response) => {
             userToPlace.isPlaced = true;
 
             // Save user first (triggers path/level hooks)
-            const savedUser = await userToPlace.save();
+            const savedUser = await userToPlace.save({ session });
 
             // Link to Parent
             if (position === 'left') {
@@ -67,7 +82,7 @@ export const placeUserManually = async (req: Request, res: Response) => {
             } else {
                 parent.rightChildId = savedUser._id as any;
             }
-            await parent.save();
+            await parent.save({ session });
 
         } else {
             // Auto Spillover (No parent selected)
@@ -77,7 +92,7 @@ export const placeUserManually = async (req: Request, res: Response) => {
             userToPlace.isPlaced = true;
             // Map 'auto' to 'weaker_leg', otherwise use explicit 'left'/'right'
             const preference = position === 'auto' ? 'weaker_leg' : position;
-            await spilloverService.placeUser(userToPlace as any, sponsorId, preference);
+            await spilloverService.placeUser(userToPlace as any, sponsorId, preference, session);
         }
 
         const pkg: any = userToPlace.enrollmentPackage;
@@ -94,7 +109,7 @@ export const placeUserManually = async (req: Request, res: Response) => {
             // I'll assume I can use dynamic import or require if top-level import is hard, BUT I should add top level import.
             // Using require for minimal diff safety right now, ideally add "import Order" at top.
             const Order = require('../models/Order').default;
-            const activationOrder = await Order.findOne({ userId: userToPlace._id, status: 'PAID' }).sort({ createdAt: 1 });
+            const activationOrder = await Order.findOne({ userId: userToPlace._id, status: 'PAID' }).sort({ createdAt: 1 }).session(session);
             if (activationOrder) {
                 commissionBase = activationOrder.totalAmount;
                 console.log(`[PlaceUser] Found Shop First Activation Order: $${commissionBase}`);
@@ -118,25 +133,29 @@ export const placeUserManually = async (req: Request, res: Response) => {
 
         // Trigger Referral Bonus
         if (commissionBase > 0) {
-            await CommissionEngine.distributeReferralBonus(sponsorId, userToPlace._id as any, commissionBase);
+            await CommissionEngine.distributeReferralBonus(sponsorId, userToPlace._id as any, commissionBase, session);
         }
 
         // Trigger PV Rollup
         if (pvToRollUp > 0) {
-            await CommissionEngine.updateUplinePV(userToPlace._id as any, pvToRollUp);
+            await CommissionEngine.updateUplinePV(userToPlace._id as any, pvToRollUp, session);
 
             // Prevent double counting for users who already have Personal PV.
             // Only add Personal PV if the user currently has none (e.g., Package Enrollment via Holding Tank).
             const currentPersonalPV = (userToPlace as any).personalPV || 0;
             if (currentPersonalPV === 0 && pkg) {
                 // Credit Personal PV for Package Enrollment
-                await CommissionEngine.addPersonalPV(userToPlace._id as any, pvToRollUp);
+                await CommissionEngine.addPersonalPV(userToPlace._id as any, pvToRollUp, session);
             }
         }
 
+        await session.commitTransaction();
+        session.endSession();
         res.json({ message: 'User placed successfully' });
 
     } catch (error: any) {
+        await session.abortTransaction();
+        session.endSession();
         console.error('Placement Error:', error);
         res.status(500).json({ message: 'Placement failed: ' + (error.message || 'Unknown error') });
     }

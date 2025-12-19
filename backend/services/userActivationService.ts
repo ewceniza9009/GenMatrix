@@ -6,14 +6,15 @@ import SystemConfig from '../models/SystemConfig';
 import spilloverService from './spilloverService';
 import { createNotification } from '../controllers/notificationController';
 import { CommissionEngine } from './CommissionEngine';
+import mongoose from 'mongoose';
 
 /**
  * Activates a user, finalized their enrollment, and places them in the network
  * (unless Holding Tank is enabled).
  */
-export const activateUser = async (userId: string, activatorOrderAmount: number = 0): Promise<void> => {
+export const activateUser = async (userId: string, activatorOrderAmount: number = 0, session?: mongoose.ClientSession): Promise<void> => {
     try {
-        const user = await User.findById(userId);
+        const user = await User.findById(userId).session(session || null);
         if (!user) throw new Error('User not found');
 
         // Idempotency check
@@ -28,7 +29,7 @@ export const activateUser = async (userId: string, activatorOrderAmount: number 
         user.status = 'active';
         user.isActive = true;
 
-        const sponsor = await User.findById(user.sponsorId);
+        const sponsor = await User.findById(user.sponsorId).session(session || null);
         let savedUser: any = user;
         let isHoldingTank = false;
 
@@ -61,14 +62,14 @@ export const activateUser = async (userId: string, activatorOrderAmount: number 
                 user.isPlaced = false;
                 // user.status is already active
                 // sponsorId is already set
-                savedUser = await user.save();
+                savedUser = await user.save({ session });
                 // Note: Bonuses are delayed until actual placement (see placeUserManually).
                 // So if we park in Holding Tank, we skip bonuses here.
             } else {
                 // force auto place logic
                 console.log('[ActivateUser] Auto-placing in Network...');
                 user.isPlaced = true;
-                savedUser = await spilloverService.placeUser(user as any, sponsor.id);
+                savedUser = await spilloverService.placeUser(user as any, sponsor.id, undefined, session);
 
                 // Trigger Bonuses
                 let baseAmount = 0;
@@ -85,7 +86,7 @@ export const activateUser = async (userId: string, activatorOrderAmount: number 
                 } else if (user.enrollmentPackage) {
                     // PACKAGE INCLUDED ACTIVATION
                     // Triggered by legacy registration with package
-                    const pkg = await Package.findById(user.enrollmentPackage);
+                    const pkg = await Package.findById(user.enrollmentPackage).session(session || null);
                     if (pkg) {
                         baseAmount = pkg.price;
                         pvAmount = pkg.pv;
@@ -96,30 +97,30 @@ export const activateUser = async (userId: string, activatorOrderAmount: number 
 
                 // Distribute Direct Referral Bonus
                 if (baseAmount > 0) {
-                    await CommissionEngine.distributeReferralBonus(sponsor.id, savedUser._id.toString(), baseAmount);
+                    await CommissionEngine.distributeReferralBonus(sponsor.id, savedUser._id.toString(), baseAmount, session);
                 }
 
                 // Distribute PV
                 if (pvAmount > 0) {
-                    await CommissionEngine.updateUplinePV(savedUser._id.toString(), pvAmount);
-                    await CommissionEngine.addPersonalPV(savedUser._id.toString(), pvAmount);
+                    await CommissionEngine.updateUplinePV(savedUser._id.toString(), pvAmount, session);
+                    await CommissionEngine.addPersonalPV(savedUser._id.toString(), pvAmount, session);
                 }
             }
         } else {
             // No Sponsor (Root)
             user.isPlaced = true;
-            savedUser = await user.save();
+            savedUser = await user.save({ session });
         }
 
         // 4. Ensure Wallet & Commission Records Exist (Idempotent)
-        const walletExists = await Wallet.findOne({ userId: savedUser._id });
+        const walletExists = await Wallet.findOne({ userId: savedUser._id }).session(session || null);
         if (!walletExists) {
-            await new Wallet({ userId: savedUser._id }).save();
+            await new Wallet({ userId: savedUser._id }).save({ session });
         }
 
-        const commExists = await Commission.findOne({ userId: savedUser._id });
+        const commExists = await Commission.findOne({ userId: savedUser._id }).session(session || null);
         if (!commExists) {
-            await new Commission({ userId: savedUser._id }).save();
+            await new Commission({ userId: savedUser._id }).save({ session });
         }
 
         // 5. Notifications

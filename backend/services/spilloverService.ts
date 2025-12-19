@@ -1,6 +1,6 @@
 import User, { IUser } from '../models/User';
 import Commission from '../models/Commission';
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
 /**
  * Spillover Service
@@ -12,8 +12,8 @@ interface PlacementResult {
   position: 'left' | 'right';
 }
 
-const findPlacement = async (sponsorId: string | Types.ObjectId, preference: string = 'weaker_leg'): Promise<PlacementResult> => {
-  const sponsor = await User.findById(sponsorId);
+const findPlacement = async (sponsorId: string | Types.ObjectId, preference: string = 'weaker_leg', session?: mongoose.ClientSession): Promise<PlacementResult> => {
+  const sponsor = await User.findById(sponsorId).session(session || null);
   if (!sponsor) throw new Error('Sponsor not found');
 
   // Extreme Left/Right
@@ -38,10 +38,10 @@ const findPlacement = async (sponsorId: string | Types.ObjectId, preference: str
     // For true 1:1 balance, we need descendant count.
 
     // Check Left Subtree Count (Expensive regex count for accuracy)
-    const leftCount = await User.countDocuments({ path: { $regex: `,${sponsor.leftChildId.toString()},` } });
+    const leftCount = await User.countDocuments({ path: { $regex: `,${sponsor.leftChildId.toString()},` } }).session(session || null);
 
     // Check Right Subtree Count
-    const rightCount = await User.countDocuments({ path: { $regex: `,${sponsor.rightChildId.toString()},` } });
+    const rightCount = await User.countDocuments({ path: { $regex: `,${sponsor.rightChildId.toString()},` } }).session(session || null);
 
     if (leftCount <= rightCount) {
       return traverseToFirstEmpty(sponsor.leftChildId);
@@ -54,16 +54,16 @@ const findPlacement = async (sponsorId: string | Types.ObjectId, preference: str
   if (!sponsor.leftChildId) return { parentId: sponsor._id as Types.ObjectId, position: 'left' };
   if (!sponsor.rightChildId) return { parentId: sponsor._id as Types.ObjectId, position: 'right' };
 
-  const commission = await Commission.findOne({ userId: sponsor._id });
+  const commission = await Commission.findOne({ userId: sponsor._id }).session(session || null);
   const leftPV = commission ? commission.leftLegPV + commission.carriedLeftPV : 0;
   const rightPV = commission ? commission.rightLegPV + commission.carriedRightPV : 0;
 
   if (leftPV < rightPV) {
     if (!sponsor.leftChildId) return { parentId: sponsor._id as Types.ObjectId, position: 'left' };
-    return traverseToFirstEmpty(sponsor.leftChildId);
+    return traverseToFirstEmpty(sponsor.leftChildId, session);
   } else if (rightPV < leftPV) {
     if (!sponsor.rightChildId) return { parentId: sponsor._id as Types.ObjectId, position: 'right' };
-    return traverseToFirstEmpty(sponsor.rightChildId);
+    return traverseToFirstEmpty(sponsor.rightChildId, session);
   } else {
     // PV is EQUAL (Tie-Breaker needed)
     // Common in Shop First (0 vs 0)
@@ -75,8 +75,8 @@ const findPlacement = async (sponsorId: string | Types.ObjectId, preference: str
 
     // We need to count members in each leg to decide
     // Note: This regex count is expensive for huge trees, but essential for balancing.
-    const leftCount = await User.countDocuments({ path: { $regex: `,${sponsor.leftChildId.toString()},` } });
-    const rightCount = await User.countDocuments({ path: { $regex: `,${sponsor.rightChildId.toString()},` } });
+    const leftCount = await User.countDocuments({ path: { $regex: `,${sponsor.leftChildId.toString()},` } }).session(session || null);
+    const rightCount = await User.countDocuments({ path: { $regex: `,${sponsor.rightChildId.toString()},` } }).session(session || null);
 
     if (leftCount <= rightCount) {
       return traverseToFirstEmpty(sponsor.leftChildId);
@@ -86,10 +86,10 @@ const findPlacement = async (sponsorId: string | Types.ObjectId, preference: str
   }
 };
 
-const traverseExtreme = async (nodeId: Types.ObjectId, side: 'left' | 'right'): Promise<PlacementResult> => {
+const traverseExtreme = async (nodeId: Types.ObjectId, side: 'left' | 'right', session?: mongoose.ClientSession): Promise<PlacementResult> => {
   let currentId = nodeId;
   while (true) {
-    const node = await User.findById(currentId);
+    const node = await User.findById(currentId).session(session || null);
     if (!node) throw new Error('Node integrity error'); // Should not happen
 
     if (side === 'left') {
@@ -102,12 +102,12 @@ const traverseExtreme = async (nodeId: Types.ObjectId, side: 'left' | 'right'): 
   }
 };
 
-const traverseToFirstEmpty = async (startNodeId: Types.ObjectId): Promise<PlacementResult> => {
+const traverseToFirstEmpty = async (startNodeId: Types.ObjectId, session?: mongoose.ClientSession): Promise<PlacementResult> => {
   const queue: Types.ObjectId[] = [startNodeId];
 
   while (queue.length > 0) {
     const currentId = queue.shift();
-    const node = await User.findById(currentId);
+    const node = await User.findById(currentId).session(session || null);
     if (!node) continue;
 
     if (!node.leftChildId) return { parentId: node._id as Types.ObjectId, position: 'left' };
@@ -119,8 +119,8 @@ const traverseToFirstEmpty = async (startNodeId: Types.ObjectId): Promise<Placem
   throw new Error('Tree full?'); // Unlikely in infinite tree
 };
 
-const placeUser = async (newUser: IUser, sponsorId: string, preferenceOverride?: string): Promise<IUser> => {
-  const sponsor = await User.findById(sponsorId);
+const placeUser = async (newUser: IUser, sponsorId: string, preferenceOverride?: string, session?: mongoose.ClientSession): Promise<IUser> => {
+  const sponsor = await User.findById(sponsorId).session(session || null);
   if (!sponsor) throw new Error('Cannot find sponsor');
 
   const preference: string = preferenceOverride || sponsor.spilloverPreference || 'weaker_leg';
@@ -128,24 +128,24 @@ const placeUser = async (newUser: IUser, sponsorId: string, preferenceOverride?:
   console.log(`[Spillover] Placing User: ${newUser.username} for Sponsor: ${sponsor.username} (${sponsorId})`);
   console.log(`[Spillover] Preference: ${preference} (Override: ${preferenceOverride}, Sponsor: ${sponsor.spilloverPreference})`);
 
-  const placement = await findPlacement(sponsorId, preference);
-  
+  const placement = await findPlacement(sponsorId, preference, session);
+
   console.log(`[Spillover] Placement Found: Parent=${placement.parentId}, Position=${placement.position}`);
 
   newUser.parentId = placement.parentId as any; // Cast if necessary, Types.ObjectId is compatible
   newUser.position = placement.position;
   newUser.sponsorId = new Types.ObjectId(sponsorId);
 
-  const savedUser = await newUser.save();
+  const savedUser = await newUser.save({ session });
 
-  const parent = await User.findById(placement.parentId);
+  const parent = await User.findById(placement.parentId).session(session || null);
   if (parent) {
     if (placement.position === 'left') {
       parent.leftChildId = savedUser._id as Types.ObjectId;
     } else {
       parent.rightChildId = savedUser._id as Types.ObjectId;
     }
-    await parent.save();
+    await parent.save({ session });
   }
 
   return savedUser;

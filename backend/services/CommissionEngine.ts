@@ -3,12 +3,13 @@ import Wallet from '../models/Wallet';
 import Commission from '../models/Commission';
 import SystemConfig from '../models/SystemConfig';
 import { createNotification } from '../controllers/notificationController';
+import mongoose from 'mongoose';
 
 export class CommissionEngine {
 
   // 1. Referral Bonus: Dynamic % based on System Config
-  static async distributeReferralBonus(sponsorId: string, newUserId: string, packagePrice: number) {
-    const sponsor = await User.findById(sponsorId);
+  static async distributeReferralBonus(sponsorId: string, newUserId: string, packagePrice: number, session?: mongoose.ClientSession) {
+    const sponsor = await User.findById(sponsorId).session(session || null);
     if (!sponsor) return;
 
     // Load Config
@@ -17,7 +18,7 @@ export class CommissionEngine {
     const bonusAmount = packagePrice * (percent / 100);
 
     // Credit Wallet
-    let wallet = await Wallet.findOne({ userId: sponsor._id });
+    let wallet = await Wallet.findOne({ userId: sponsor._id }).session(session || null);
     if (!wallet) {
       wallet = new Wallet({ userId: sponsor._id, balance: 0 });
     }
@@ -34,10 +35,10 @@ export class CommissionEngine {
       date: new Date(),
       status: 'COMPLETED'
     });
-    await wallet.save();
+    await wallet.save({ session });
 
     // Update Commission Record
-    let commission = await Commission.findOne({ userId: sponsor._id });
+    let commission = await Commission.findOne({ userId: sponsor._id }).session(session || null);
     if (!commission) {
       commission = new Commission({ userId: sponsor._id, totalEarned: 0 });
     }
@@ -51,7 +52,7 @@ export class CommissionEngine {
     });
     await commission.save();
 
-    await commission.save();
+    await commission.save({ session });
 
     // NOTIFY
     await createNotification(
@@ -65,8 +66,8 @@ export class CommissionEngine {
   }
 
   // 2. Binary Pairing Logic (Dynamic from SystemConfig)
-  static async runBinaryPairing(userId: string) {
-    const user = await User.findById(userId);
+  static async runBinaryPairing(userId: string, session?: mongoose.ClientSession) {
+    const user = await User.findById(userId).session(session || null);
     if (!user) return;
 
     // LOAD CONFIG
@@ -135,21 +136,21 @@ export class CommissionEngine {
       // Update User PV (Flush used PV)
       user.currentLeftPV -= usedLeft;
       user.currentRightPV -= usedRight;
-      await user.save();
+      await user.save({ session });
 
       // Credit Wallet
-      await this.creditWallet(user._id.toString(), payout, 'BINARY_BONUS', `Matched ${pairs} pairs (${RATIO}).${isCapped ? ' (Capped)' : ''}`);
+      await this.creditWallet(user._id.toString(), payout, 'BINARY_BONUS', `Matched ${pairs} pairs (${RATIO}).${isCapped ? ' (Capped)' : ''}`, session);
 
       // Update Commission Stats
-      await this.updateCommissionStats(user._id.toString(), payout, 'BINARY_BONUS');
+      await this.updateCommissionStats(user._id.toString(), payout, 'BINARY_BONUS', session);
 
       // --- TRIGGER MATCHING BONUS ---
       if (payout > 0) {
-        await this.distributeMatchingBonus(user._id.toString(), payout);
+        await this.distributeMatchingBonus(user._id.toString(), payout, session);
       }
 
       // --- CHECK RANK ADVANCEMENT ---
-      await this.checkRankAdvancement(user);
+      await this.checkRankAdvancement(user, session);
 
       // NOTIFY
       await createNotification(
@@ -164,7 +165,7 @@ export class CommissionEngine {
   }
 
   // 3. Matching Bonus (Dynamic Generations from Config)
-  static async distributeMatchingBonus(earnerId: string, binaryIncome: number) {
+  static async distributeMatchingBonus(earnerId: string, binaryIncome: number, session?: mongoose.ClientSession) {
     // Load Config
     const config = await (SystemConfig as any).getLatest();
     const rawGenerations = config.matchingBonusGenerations && config.matchingBonusGenerations.length > 0
@@ -174,12 +175,12 @@ export class CommissionEngine {
     // Convert 10 -> 0.10
     const generations = rawGenerations.map((g: number) => g / 100);
 
-    let currentUser = await User.findById(earnerId);
+    let currentUser = await User.findById(earnerId).session(session || null);
     let currentLevel = 0;
 
     // Traverse up the SPONSOR tree
     while (currentUser && currentUser.sponsorId && currentLevel < generations.length) {
-      const sponsor = await User.findById(currentUser.sponsorId);
+      const sponsor = await User.findById(currentUser.sponsorId).session(session || null);
       if (!sponsor) break;
 
       const bonusAmount = binaryIncome * generations[currentLevel];
@@ -189,9 +190,10 @@ export class CommissionEngine {
           sponsor._id.toString(),
           bonusAmount,
           'MATCHING_BONUS',
-          `Matching bonus (${(generations[currentLevel] * 100)}%) from ${currentUser.username}'s binary income`
+          `Matching bonus (${(generations[currentLevel] * 100)}%) from ${currentUser.username}'s binary income`,
+          session
         );
-        await this.updateCommissionStats(sponsor._id.toString(), bonusAmount, 'MATCHING_BONUS');
+        await this.updateCommissionStats(sponsor._id.toString(), bonusAmount, 'MATCHING_BONUS', session);
 
         // NOTIFY
         await createNotification(
@@ -208,8 +210,8 @@ export class CommissionEngine {
   }
 
   // 4. Rank Advancement
-  static async checkRankAdvancement(user: IUser) {
-    const commission = await Commission.findOne({ userId: user._id });
+  static async checkRankAdvancement(user: IUser, session?: mongoose.ClientSession) {
+    const commission = await Commission.findOne({ userId: user._id }).session(session || null);
     if (!commission) return;
 
     const total = commission.totalEarned;
@@ -222,12 +224,12 @@ export class CommissionEngine {
 
     if (newRank !== user.rank) {
       user.rank = newRank;
-      await user.save();
+      await user.save({ session });
 
       // One-time Rank Bonus
       const rankBonus = newRank === 'Silver' ? 50 : newRank === 'Gold' ? 200 : 1000;
-      await this.creditWallet(user._id.toString(), rankBonus, 'RANK_ACHIEVEMENT', `Promoted to ${newRank}`);
-      await this.updateCommissionStats(user._id.toString(), rankBonus, 'RANK_ACHIEVEMENT');
+      await this.creditWallet(user._id.toString(), rankBonus, 'RANK_ACHIEVEMENT', `Promoted to ${newRank}`, session);
+      await this.updateCommissionStats(user._id.toString(), rankBonus, 'RANK_ACHIEVEMENT', session);
 
       // NOTIFY
       await createNotification(
@@ -240,11 +242,11 @@ export class CommissionEngine {
   }
 
   // 5. Update Upline PV
-  static async updateUplinePV(userId: string, pvAmount: number) {
-    let currentUser = await User.findById(userId);
+  static async updateUplinePV(userId: string, pvAmount: number, session?: mongoose.ClientSession) {
+    let currentUser = await User.findById(userId).session(session || null);
 
     while (currentUser && currentUser.parentId) {
-      const parent = await User.findById(currentUser.parentId);
+      const parent = await User.findById(currentUser.parentId).session(session || null);
       if (!parent) break;
 
       console.log(`[CommissionEngine] Propagating ${pvAmount} PV from ${currentUser.username} to parent ${parent.username}`);
@@ -259,11 +261,11 @@ export class CommissionEngine {
       } else {
         console.warn(`[CommissionEngine] WARNING: ${currentUser.username} thinks ${parent.username} is parent, but parent does not link back correctly!`);
       }
-
-      await parent.save();
+      // @ts-ignore
+      await parent.save({ session });
 
       // Trigger binary check for parent immediately
-      await this.runBinaryPairing(parent._id.toString());
+      await this.runBinaryPairing(parent._id.toString(), session);
 
       currentUser = parent;
     }
@@ -271,19 +273,19 @@ export class CommissionEngine {
   }
 
   // 6. Add Personal PV (Tracking only)
-  static async addPersonalPV(userId: string, pvAmount: number) {
+  static async addPersonalPV(userId: string, pvAmount: number, session?: mongoose.ClientSession) {
     if (pvAmount <= 0) return;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).session(session || null);
     if (!user) return;
 
     user.personalPV = (user.personalPV || 0) + pvAmount;
-    await user.save();
+    await user.save({ session });
     console.log(`[CommissionEngine] Added ${pvAmount} Personal PV to ${user.username}. Total: ${user.personalPV}`);
   }
 
   // Helper: Credit Wallet
-  private static async creditWallet(userId: string, amount: number, type: string, description: string) {
-    let wallet = await Wallet.findOne({ userId });
+  private static async creditWallet(userId: string, amount: number, type: string, description: string, session?: mongoose.ClientSession) {
+    let wallet = await Wallet.findOne({ userId }).session(session || null);
     if (!wallet) wallet = new Wallet({ userId, balance: 0 });
 
     wallet.balance += amount;
@@ -294,12 +296,12 @@ export class CommissionEngine {
       description,
       status: 'COMPLETED'
     } as any);
-    await wallet.save();
+    await wallet.save({ session });
   }
 
   // Helper: Update Commission Doc
-  private static async updateCommissionStats(userId: string, amount: number, type: string) {
-    let commission = await Commission.findOne({ userId });
+  private static async updateCommissionStats(userId: string, amount: number, type: string, session?: mongoose.ClientSession) {
+    let commission = await Commission.findOne({ userId }).session(session || null);
     if (!commission) commission = new Commission({ userId, totalEarned: 0 });
     commission.totalEarned += amount;
     commission.history.push({
@@ -308,6 +310,6 @@ export class CommissionEngine {
       date: new Date(),
       details: 'Auto-calculated'
     });
-    await commission.save();
+    await commission.save({ session });
   }
 }

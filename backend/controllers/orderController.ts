@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import Order from '../models/Order';
 import Product from '../models/Product';
 import Wallet from '../models/Wallet';
@@ -16,6 +17,8 @@ const getSetting = async (key: string): Promise<boolean> => {
 
 // Create Order (Members & Guests)
 export const createOrder = async (req: Request, res: Response) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
         const userId = (req as any).user?.id; // Authed User
         const { items, guestDetails, referrerId, paymentMethod = 'WALLET' } = req.body;
@@ -28,13 +31,16 @@ export const createOrder = async (req: Request, res: Response) => {
 
         // Gatekeeping
         if (isGuest && !enablePublicShop) {
+            await session.abortTransaction(); session.endSession();
             return res.status(403).json({ message: 'Public Shop is disabled' });
         }
         if (!isGuest && !enableShop) {
+            await session.abortTransaction(); session.endSession();
             return res.status(403).json({ message: 'Member Shop is disabled' });
         }
 
         if (!items || items.length === 0) {
+            await session.abortTransaction(); session.endSession();
             return res.status(400).json({ message: 'No items in order' });
         }
 
@@ -47,9 +53,11 @@ export const createOrder = async (req: Request, res: Response) => {
         for (const item of items) {
             const product = await Product.findById(item.productId);
             if (!product || !product.isActive) {
+                await session.abortTransaction(); session.endSession();
                 return res.status(400).json({ message: `Unavailable: ${item.productId}` });
             }
             if (product.stock < item.quantity) {
+                await session.abortTransaction(); session.endSession();
                 return res.status(400).json({ message: `Out of stock: ${product.name}` });
             }
 
@@ -84,8 +92,9 @@ export const createOrder = async (req: Request, res: Response) => {
 
         // MEMBER: Wallet Deduction (Only if paymentMethod is WALLET)
         if (!isGuest && paymentMethod === 'WALLET') {
-            const wallet = await Wallet.findOne({ userId });
+            const wallet = await Wallet.findOne({ userId }).session(session);
             if (!wallet || wallet.balance < totalAmount) {
+                await session.abortTransaction(); session.endSession();
                 return res.status(400).json({ message: 'Insufficient wallet balance' });
             }
 
@@ -97,7 +106,7 @@ export const createOrder = async (req: Request, res: Response) => {
                 date: new Date(),
                 status: 'COMPLETED'
             } as any);
-            await wallet.save();
+            await wallet.save({ session });
         }
         else if (paymentMethod === 'CASH') {
             orderStatus = 'PENDING';
@@ -108,7 +117,7 @@ export const createOrder = async (req: Request, res: Response) => {
         }
 
         // 4. Create Order Record
-        const order = await Order.create({
+        const order = await Order.create([{
             userId: userId || undefined,
             referrerId: isGuest ? referrerId : undefined,
             isGuest,
@@ -118,18 +127,18 @@ export const createOrder = async (req: Request, res: Response) => {
             totalPV,
             status: orderStatus,
             paymentMethod: isGuest ? 'CREDIT_CARD' : paymentMethod
-        });
+        }], { session });
 
         // 5. Inventory Update
         for (const item of orderItems) {
-            await Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } });
+            await Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } }, { session });
         }
 
         // --- SKIP ACTIVATION IF PENDING ---
         if (orderStatus === 'PAID') {
             // 5b. Activate User
             if (userId) {
-                await activateUser(userId, totalAmount);
+                await activateUser(userId, totalAmount, session);
             }
 
             // 6. Commission & Profit Distribution
@@ -138,29 +147,34 @@ export const createOrder = async (req: Request, res: Response) => {
             if (beneficiaryId) {
                 // A. Distribute Retail Profit (Guests Only)
                 if (isGuest && totalRetailProfit > 0) {
-                    const refWallet = await Wallet.findOne({ userId: referrerId });
+                    const refWallet = await Wallet.findOne({ userId: referrerId }).session(session);
                     if (refWallet) {
                         refWallet.balance += totalRetailProfit;
                         refWallet.transactions.push({
                             type: 'BONUS', // Generic bonus type or new RETAIL_PROFIT
                             amount: totalRetailProfit,
-                            description: `Retail Profit from Guest Order #${order._id}`,
+                            description: `Retail Profit from Guest Order #${order[0]._id}`,
                             date: new Date(),
                             status: 'COMPLETED'
                         } as any);
-                        await refWallet.save();
+                        await refWallet.save({ session });
                     }
                 }
 
                 // B. Propagate PV
-                await CommissionEngine.updateUplinePV(beneficiaryId, totalPV);
-                await CommissionEngine.addPersonalPV(beneficiaryId, totalPV);
+                await CommissionEngine.updateUplinePV(beneficiaryId, totalPV, session);
+                await CommissionEngine.addPersonalPV(beneficiaryId, totalPV, session);
             }
         }
 
-        res.status(201).json(order);
+        await session.commitTransaction();
+        session.endSession();
+
+        res.status(201).json(order[0]);
 
     } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
         console.error(error);
         res.status(500).json({ message: 'Error processing order' });
     }
@@ -238,32 +252,41 @@ const isValidObjectId = (id: string) => {
 
 // Admin: Update Order Status
 export const updateOrderStatus = async (req: Request, res: Response) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
         const { id } = req.params;
         const { status } = req.body;
 
-        const order = await Order.findById(id);
-        if (!order) return res.status(404).json({ message: 'Order not found' });
+        const order = await Order.findById(id).session(session);
+        if (!order) {
+            await session.abortTransaction(); session.endSession();
+            return res.status(404).json({ message: 'Order not found' });
+        }
 
         const oldStatus = order.status;
         order.status = status;
-        await order.save();
+        await order.save({ session });
 
         // Trigger Activation if PENDING -> PAID
         if (oldStatus === 'PENDING' && status === 'PAID') {
             if (order.userId) {
                 const userId = order.userId.toString();
                 // 1. Activate User
-                await activateUser(userId, order.totalAmount);
+                await activateUser(userId, order.totalAmount, session);
 
                 // 2. Propagate PV
-                await CommissionEngine.updateUplinePV(userId, order.totalPV);
-                await CommissionEngine.addPersonalPV(userId, order.totalPV);
+                await CommissionEngine.updateUplinePV(userId, order.totalPV, session);
+                await CommissionEngine.addPersonalPV(userId, order.totalPV, session);
             }
         }
 
+        await session.commitTransaction();
+        session.endSession();
         res.json(order);
     } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
         console.error(error);
         res.status(500).json({ message: 'Error updating order' });
     }
