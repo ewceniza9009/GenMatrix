@@ -10,6 +10,9 @@ router.post('/register', authController.register);
 // Login Route
 router.post('/login', authController.login);
 
+// Me Route
+router.get('/me', protect, authController.getMe);
+
 // Profile Routes
 router.put('/profile', protect, authController.updateProfile);
 

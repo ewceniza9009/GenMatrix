@@ -40,6 +40,10 @@ export const api = createApi({
         body: credentials,
       }),
     }),
+    getMe: builder.query({
+      query: () => 'auth/me',
+      providesTags: ['User']
+    }),
     register: builder.mutation({
       query: (data) => ({
         url: 'auth/register',
@@ -447,6 +451,7 @@ export const api = createApi({
 export const {
   useGetTreeQuery,
   useLoginMutation,
+  useGetMeQuery,
   useRegisterMutation,
   useGetUplineQuery,
   useGetMemberDetailsQuery,

@@ -206,6 +206,42 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+
+// Get Current User (Me)
+export const getMe = async (req: AuthRequest, res: Response) => {
+  try {
+    // @ts-ignore
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.json({
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      status: user.status,
+      isActive: user.isActive,
+      role: user.role,
+      firstName: user.firstName,
+      middleName: user.middleName,
+      lastName: user.lastName,
+      occupation: user.occupation,
+      phone: user.phone,
+      address: user.address,
+      spilloverPreference: user.spilloverPreference,
+      enableHoldingTank: user.enableHoldingTank,
+      sponsorId: user.sponsorId,
+      parentId: user.parentId,
+      rank: user.rank,
+      currentLeftPV: user.currentLeftPV,
+      currentRightPV: user.currentRightPV,
+      personalPV: user.personalPV
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 // Update Profile Logic
 export const updateProfile = async (req: AuthRequest, res: Response) => {
   try {

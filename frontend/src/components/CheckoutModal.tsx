@@ -1,9 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from './CartContext';
 import { useUI } from './UIContext';
-import { useCreateOrderMutation } from '../store/api';
+import { useCreateOrderMutation, useGetMeQuery } from '../store/api';
 import { X, CreditCard, ChevronRight, Box } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 
@@ -13,18 +13,33 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
     const [createOrder, { isLoading }] = useCreateOrderMutation();
     const { user } = useSelector((state: RootState) => state.auth);
 
-    const isWalletEnabled = user?.isActive && user?.status === 'active';
+    // Auto-refresh user data to capture activation status
+    const { data: freshUser } = useGetMeQuery(undefined, {
+        refetchOnMountOrArgChange: true,
+        skip: !isOpen
+    });
 
-    const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'CREDIT_CARD' | 'CASH'>(
-        isWalletEnabled ? 'wallet' : 'CREDIT_CARD'
+    const currentUser = freshUser || user;
+    const isWalletEnabled = currentUser?.isActive && currentUser?.status === 'active';
+
+    const [paymentMethod, setPaymentMethod] = useState<'WALLET' | 'CREDIT_CARD' | 'CASH'>(
+        isWalletEnabled ? 'WALLET' : 'CREDIT_CARD'
     );
+
+    // Sync local state when fresh data arrives
+    useEffect(() => {
+        if (isWalletEnabled) {
+            setPaymentMethod('WALLET');
+        }
+    }, [isWalletEnabled]);
+
 
     // Auto-select card if wallet is empty/insufficient or user status forbids wallet?
     // For now, let user select.
 
     const handleCheckout = async () => {
         try {
-            if (paymentMethod === 'wallet' && !isWalletEnabled) {
+            if (paymentMethod === 'WALLET' && !isWalletEnabled) {
                 showAlert('Wallet payment requires account activation.', 'error');
                 return;
             }
@@ -111,16 +126,16 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
                                 <div
                                     className={`p-4 rounded-xl border-2 transition-all flex items-center gap-4 ${!isWalletEnabled
                                         ? 'opacity-50 cursor-not-allowed border-gray-200 dark:border-white/5 bg-gray-100 dark:bg-white/5'
-                                        : paymentMethod === 'wallet'
+                                        : paymentMethod === 'WALLET'
                                             ? 'cursor-pointer border-teal-500 bg-teal-50 dark:bg-teal-500/10'
                                             : 'cursor-pointer border-gray-200 dark:border-white/10'
                                         }`}
-                                    onClick={() => isWalletEnabled && setPaymentMethod('wallet')}
+                                    onClick={() => isWalletEnabled && setPaymentMethod('WALLET')}
                                 >
                                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${!isWalletEnabled ? 'border-gray-300' :
-                                        paymentMethod === 'wallet' ? 'border-teal-500' : 'border-gray-300'
+                                        paymentMethod === 'WALLET' ? 'border-teal-500' : 'border-gray-300'
                                         }`}>
-                                        {paymentMethod === 'wallet' && isWalletEnabled && <div className="w-2.5 h-2.5 rounded-full bg-teal-500" />}
+                                        {paymentMethod === 'WALLET' && isWalletEnabled && <div className="w-2.5 h-2.5 rounded-full bg-teal-500" />}
                                     </div>
                                     <div>
                                         <p className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
