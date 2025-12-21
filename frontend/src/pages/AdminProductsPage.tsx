@@ -12,9 +12,11 @@ import {
     Trash2,
     X,
     Image as ImageIcon,
-    PackagePlus
+    PackagePlus,
+    ShoppingBag
 } from 'lucide-react';
 import { DataTable } from '../components/DataTable';
+import PageHeader from '../components/PageHeader';
 
 import { useUI } from '../components/UIContext';
 
@@ -242,8 +244,14 @@ const AdminProductsPage = () => {
 
     return (
         <div className="space-y-6 animation-fade-in">
-            <DataTable
+            <PageHeader
                 title="Product Management"
+                subtitle="Manage catalog, stock, and pricing."
+                icon={<ShoppingBag size={24} />}
+            />
+            <DataTable
+                title=""
+
                 columns={columns}
                 data={data?.data || []}
                 total={data?.total || 0}

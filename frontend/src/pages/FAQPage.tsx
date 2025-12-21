@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Search, MessageSquare, ArrowLeft } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, MessageSquare, ArrowLeft, HelpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import PageHeader from '../components/PageHeader';
 
 const FAQPage = () => {
     const navigate = useNavigate();
@@ -41,36 +42,33 @@ const FAQPage = () => {
 
     return (
         <div className="flex flex-col gap-6 animate-in fade-in duration-500">
-            <div className="shrink-0 space-y-4">
-                <button
-                    onClick={() => navigate('/dashboard/help')}
-                    className="flex items-center gap-2 text-gray-500 hover:text-teal-600 transition-colors font-medium text-sm group w-fit"
-                >
-                    <div className="bg-white dark:bg-[#1a1b23] p-1.5 rounded-lg border border-gray-200 dark:border-white/10 group-hover:border-teal-500/50 shadow-sm">
-                        <ArrowLeft size={16} />
-                    </div>
-                    Back to Help Center
-                </button>
-
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Frequently Asked Questions</h1>
-                        <p className="text-gray-500 dark:text-gray-400 mt-2">
-                            Quick answers to the most common questions about GenMatrix.
-                        </p>
-                    </div>
-
-                    <div className="relative w-full lg:w-96">
-                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                        <input
-                            type="text"
-                            placeholder="Search for answers..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-white dark:bg-[#1a1b23] border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm text-gray-900 dark:text-white"
-                        />
-                    </div>
-                </div>
+            <div className="shrink-0">
+                <PageHeader
+                    title="Frequently Asked Questions"
+                    subtitle="Quick answers to the most common questions about GenMatrix."
+                    icon={<HelpCircle size={24} />}
+                    actions={
+                        <div className="flex items-center gap-3">
+                            <div className="relative w-full md:w-64">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Search answers..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 bg-white dark:bg-[#1a1b23] border border-gray-200 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm text-sm text-gray-900 dark:text-white"
+                                />
+                            </div>
+                            <button
+                                onClick={() => navigate('/dashboard/help')}
+                                className="flex items-center gap-2 text-gray-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-white transition-colors bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-3 py-2 rounded-lg text-sm font-medium"
+                            >
+                                <ArrowLeft size={16} />
+                                <span className="hidden sm:inline">Back</span>
+                            </button>
+                        </div>
+                    }
+                />
             </div>
 
             {/* Mobile View: Standard Stack (Preserves Order) */}
@@ -123,7 +121,6 @@ const FAQPage = () => {
                         {/* Left Column (Even Indices) */}
                         <div className="flex-1 space-y-4">
                             {filteredFaqs.filter((_, i) => i % 2 === 0).map((faq) => {
-                                const index = faqs.indexOf(faq); // Use original index or filtered index? Use filtered logic consistent with mobile
                                 const displayIndex = filteredFaqs.indexOf(faq);
                                 return (
                                     <div

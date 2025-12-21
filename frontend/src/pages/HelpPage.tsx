@@ -1,32 +1,19 @@
 
 import { useNavigate } from 'react-router-dom';
 import { HelpCircle, MessageSquare, Book, TrendingUp, ArrowRight, LifeBuoy } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 
 const HelpPage = () => {
     const navigate = useNavigate();
 
     return (
         <div className="flex flex-col h-[calc(100vh-6rem)] gap-6 animate-in fade-in duration-500">
-            {/* Header / Hero - Premium Gradient & Shapes */}
-            <div className="shrink-0 relative bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-8 shadow-2xl overflow-hidden flex items-center border border-slate-700/50">
-                {/* Premium Background Effects */}
-                <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl -mr-20 -mt-20"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl -ml-20 -mb-20"></div>
-
-                <div className="relative z-10 w-full flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div>
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-teal-300 text-xs font-bold uppercase tracking-wider mb-3">
-                            <LifeBuoy size={14} /> Help Center
-                        </div>
-                        <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 leading-tight">
-                            How can we help you <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400">succeed today?</span>
-                        </h1>
-                        <p className="text-slate-300 text-base max-w-2xl">
-                            Explore our comprehensive guides, simulate your earnings, or get personalized support.
-                        </p>
-                    </div>
-                </div>
-            </div>
+            {/* Header */}
+            <PageHeader
+                title="Help Center"
+                subtitle="Explore guides, simulate earnings, or get support."
+                icon={<LifeBuoy size={24} />}
+            />
 
             {/* Main Content Grid - Full Coverage, Premium Cards */}
             <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6">

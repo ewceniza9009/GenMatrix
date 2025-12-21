@@ -4,6 +4,8 @@ import { ShieldCheck } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { DataTable } from '../components/DataTable';
+import PageHeader from '../components/PageHeader';
+import { Users } from 'lucide-react';
 
 import { useUI } from '../components/UIContext';
 
@@ -159,19 +161,27 @@ const AdminUsersPage = () => {
 
     return (
         <div className="space-y-6 animation-fade-in">
-            <div className="flex justify-end gap-2">
-                <select
-                    value={isActiveFilter}
-                    onChange={(e) => setIsActiveFilter(e.target.value)}
-                    className="px-3 py-2 text-sm border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                    <option value="">All Statuses</option>
-                    <option value="true">Active Only</option>
-                    <option value="false">Inactive Only</option>
-                </select>
-            </div>
-            <DataTable
+            <PageHeader
                 title="User Management"
+                subtitle="Manage registered users, roles, and status."
+                icon={<Users size={24} />}
+                actions={
+                    <div className="flex justify-end gap-2">
+                        <select
+                            value={isActiveFilter}
+                            onChange={(e) => setIsActiveFilter(e.target.value)}
+                            className="px-3 py-2 text-sm border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        >
+                            <option value="">All Statuses</option>
+                            <option value="true">Active Only</option>
+                            <option value="false">Inactive Only</option>
+                        </select>
+                    </div>
+                }
+            />
+            <DataTable
+                title="" // Cleared title since we have PageHeader
+
                 columns={columns}
                 data={data?.data || []}
                 total={data?.total || 0}

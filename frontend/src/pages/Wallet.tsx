@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useGetWalletQuery, useRequestWithdrawalMutation, useTransferFundsMutation } from '../store/api';
-import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Search, Download, ChevronLeft, ChevronRight, ArrowUpDown, Info, CreditCard, Send, Users, Check, AlertCircle } from 'lucide-react';
+import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Search, Download, ChevronLeft, ChevronRight, ArrowUpDown, Info, Send, Users, Check, AlertCircle } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { useUI } from '../components/UIContext';
 
 const WalletPage = () => {
@@ -81,6 +82,11 @@ const WalletPage = () => {
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
+      <PageHeader
+        title="My Wallet"
+        subtitle="Manage your earnings, withdrawals, and funds."
+        icon={<WalletIcon size={24} />}
+      />
 
       {/* Header & Balance */}
       <div className="flex flex-col md:flex-row gap-6">

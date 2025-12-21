@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import StatsCard from '../components/StatsCard';
+import PageHeader from '../components/PageHeader';
 import { DollarSign, Users, PlayCircle, Activity, AlertCircle, CheckCircle, Info, ArrowUpDown, Clock, FileWarning } from 'lucide-react';
 import { useRunCommissionsMutation, useGetSystemLogsQuery, useGetAdminStatsQuery, useGetSystemAnalyticsQuery } from '../store/api';
 import { useUI } from '../components/UIContext';
@@ -85,16 +86,16 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-8 pb-12">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Admin<span className="text-teal-600">Control</span></h1>
-          <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">System Overview & Management</p>
-        </div>
-        <div className="text-right hidden md:block">
-          <p className="text-xs font-mono text-gray-400 dark:text-slate-500">SYSTEM STATUS: <span className="text-green-500 font-bold">ONLINE</span></p>
-          <p className="text-[10px] text-gray-400 dark:text-slate-600">{new Date().toLocaleString()}</p>
-        </div>
-      </div>
+      <PageHeader
+        title={<>Admin<span className="text-teal-600">Control</span></>}
+        subtitle="System Overview & Management"
+        actions={
+          <div className="text-right hidden md:block">
+            <p className="text-xs font-mono text-gray-400 dark:text-slate-500">SYSTEM STATUS: <span className="text-green-500 font-bold">ONLINE</span></p>
+            <p className="text-[10px] text-gray-400 dark:text-slate-600">{new Date().toLocaleString()}</p>
+          </div>
+        }
+      />
 
       {/* Primary Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -313,37 +314,63 @@ const AdminDashboard = () => {
           ) : !logs || logs.length === 0 ? (
             <div className="p-12 text-center text-gray-400">No activity recorded.</div>
           ) : (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-gray-100 dark:border-slate-700/50">
-                  <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('type')}>Type</th>
-                  <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('action')}>Action</th>
-                  <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider w-1/2 cursor-pointer" onClick={() => handleSort('details')}>Message</th>
-                  <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-right cursor-pointer" onClick={() => handleSort('timestamp')}>Timestamp</th>
-                </tr>
-              </thead>
-              <tbody className="font-mono text-xs">
-                {logs.map((log: any, index: number) => (
-                  <tr key={log._id} className={`hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors group ${index % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-gray-50/30 dark:bg-slate-800/50'}`}>
-                    <td className="px-6 py-3">
+            <>
+              {/* Mobile Card View (< md) */}
+              <div className="md:hidden divide-y divide-gray-100 dark:divide-slate-700/50">
+                {logs.map((log: any) => (
+                  <div key={log._id} className="p-4 flex flex-col gap-2 font-mono text-xs">
+                    <div className="flex justify-between items-start">
                       <div className="flex items-center gap-2">
                         {getLogIcon(log.type)}
                         <span className={`font-bold ${log.type === 'ERROR' ? 'text-red-600' : log.type === 'WARNING' ? 'text-orange-600' : 'text-gray-600 dark:text-gray-400'}`}>{log.type}</span>
                       </div>
-                    </td>
-                    <td className="px-6 py-3 font-bold text-gray-800 dark:text-slate-200">
+                      <span className="text-gray-400 text-[10px]">{new Date(log.timestamp).toLocaleString()}</span>
+                    </div>
+                    <div className="font-bold text-gray-800 dark:text-slate-200">
                       {log.action}
-                    </td>
-                    <td className="px-6 py-3 text-gray-600 dark:text-slate-400 truncate max-w-xs group-hover:whitespace-normal group-hover:overflow-visible group-hover:bg-white dark:group-hover:bg-slate-800 group-hover:shadow-lg group-hover:z-10 relative">
+                    </div>
+                    <div className="text-gray-600 dark:text-slate-400 break-words bg-gray-50 dark:bg-slate-900/50 p-2 rounded border border-gray-100 dark:border-slate-700/50">
                       {log.details}
-                    </td>
-                    <td className="px-6 py-3 text-right text-gray-400">
-                      {new Date(log.timestamp).toLocaleString()}
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+
+              {/* Desktop Table View (>= md) */}
+              <div className="hidden md:block">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-100 dark:border-slate-700/50">
+                      <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('type')}>Type</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('action')}>Action</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider w-1/2 cursor-pointer" onClick={() => handleSort('details')}>Message</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-right cursor-pointer" onClick={() => handleSort('timestamp')}>Timestamp</th>
+                    </tr>
+                  </thead>
+                  <tbody className="font-mono text-xs">
+                    {logs.map((log: any, index: number) => (
+                      <tr key={log._id} className={`hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors group ${index % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-gray-50/30 dark:bg-slate-800/50'}`}>
+                        <td className="px-6 py-3">
+                          <div className="flex items-center gap-2">
+                            {getLogIcon(log.type)}
+                            <span className={`font-bold ${log.type === 'ERROR' ? 'text-red-600' : log.type === 'WARNING' ? 'text-orange-600' : 'text-gray-600 dark:text-gray-400'}`}>{log.type}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-3 font-bold text-gray-800 dark:text-slate-200">
+                          {log.action}
+                        </td>
+                        <td className="px-6 py-3 text-gray-600 dark:text-slate-400 truncate max-w-xs group-hover:whitespace-normal group-hover:overflow-visible group-hover:bg-white dark:group-hover:bg-slate-800 group-hover:shadow-lg group-hover:z-10 relative">
+                          {log.details}
+                        </td>
+                        <td className="px-6 py-3 text-right text-gray-400">
+                          {new Date(log.timestamp).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
 

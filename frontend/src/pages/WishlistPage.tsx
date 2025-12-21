@@ -1,6 +1,7 @@
 import { useGetWishlistQuery, useRemoveFromWishlistMutation } from '../store/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { Link } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
 
@@ -11,13 +12,11 @@ const WishlistPage = () => {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <Heart className="text-red-500 fill-red-500" />
-                    My Wishlist
-                </h1>
-                <p className="text-gray-500 dark:text-slate-400">Save items for later.</p>
-            </div>
+            <PageHeader
+                title="My Wishlist"
+                subtitle="Save items for later."
+                icon={<Heart size={24} />}
+            />
 
             {isLoading ? (
                 <div className="text-center py-20 text-gray-400">Loading wishlist...</div>

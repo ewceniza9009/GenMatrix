@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useGetSettingsQuery, useUpdateSettingMutation } from '../store/api';
 import { Settings, Shield, CheckCircle2, AlertTriangle, ShoppingBag, TrendingUp } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 
 const AdminSettingsPage = () => {
     const { data: settings, isLoading } = useGetSettingsQuery();
@@ -157,12 +158,11 @@ const AdminSettingsPage = () => {
     return (
         <div className="space-y-6 max-w-4xl mx-auto animation-fade-in">
             {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <Settings className="text-teal-500" /> System Settings
-                </h1>
-                <p className="text-gray-500 dark:text-slate-400">Configure global application behaviors.</p>
-            </div>
+            <PageHeader
+                title="System Settings"
+                subtitle="Configure global application behaviors."
+                icon={<Settings size={24} />}
+            />
 
             {/* Settings Sections */}
             <div className="grid gap-6">

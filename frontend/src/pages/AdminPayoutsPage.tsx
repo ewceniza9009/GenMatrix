@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useGetPendingWithdrawalsQuery, useProcessWithdrawalMutation } from '../store/api';
-import { DollarSign, CheckCircle, XCircle, Search, CreditCard, Calendar, User } from 'lucide-react';
+import { CheckCircle, XCircle, Search, Calendar, User, Wallet } from 'lucide-react';
 import { useUI } from '../components/UIContext';
+import PageHeader from '../components/PageHeader';
 
 const AdminPayoutsPage = () => {
     const [page, setPage] = useState(1);
@@ -39,39 +40,24 @@ const AdminPayoutsPage = () => {
     return (
         <div className="space-y-8 animation-fade-in pb-10">
 
-            {/* 1. HERO SECTION */}
-            <div className="relative overflow-hidden rounded-3xl bg-slate-900 border border-slate-700/50 shadow-2xl">
-                {/* Background Effects */}
-                <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4"></div>
-
-                <div className="relative z-10 p-8 md:p-10 text-white flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
-                    <div className="space-y-4 max-w-xl">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-bold uppercase tracking-wider">
-                            <CreditCard size={12} />
-                            Finance Control Center
+            {/* 1. Header Section */}
+            <PageHeader
+                title={<>Payout <span className="text-teal-600 dark:text-teal-400">Management</span></>}
+                subtitle="Review and process pending withdrawal requests."
+                icon={<Wallet size={24} />}
+                actions={
+                    <div className="grid grid-cols-2 w-full md:w-auto md:flex gap-4">
+                        <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-3 rounded-xl flex flex-col justify-between shadow-sm min-w-[120px]">
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Pending</p>
+                            <p className="text-xl font-bold">{totalRequests}</p>
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-                            Payout <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-indigo-400">Management</span>
-                        </h1>
-                        <p className="text-slate-400 text-lg leading-relaxed">
-                            Review and process pending withdrawal requests. Approved transactions will be simulated as paid via the configured gateway.
-                        </p>
-                    </div>
-
-                    {/* Quick Stats */}
-                    <div className="flex gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-                        <div className="bg-white/5 backdrop-blur-md border border-white/10 p-5 rounded-2xl min-w-[160px] flex flex-col justify-between hover:bg-white/10 transition-colors">
-                            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Pending Count</p>
-                            <p className="text-3xl font-bold">{totalRequests}</p>
-                        </div>
-                        <div className="bg-white/5 backdrop-blur-md border border-white/10 p-5 rounded-2xl min-w-[160px] flex flex-col justify-between hover:bg-white/10 transition-colors">
-                            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Page Total</p>
-                            <p className="text-3xl font-bold text-teal-400">${visibleTotal.toFixed(2)}</p>
+                        <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-3 rounded-xl flex flex-col justify-between shadow-sm min-w-[120px]">
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Page Total</p>
+                            <p className="text-xl font-bold text-teal-600 dark:text-teal-400">${visibleTotal.toFixed(2)}</p>
                         </div>
                     </div>
-                </div>
-            </div>
+                }
+            />
 
             {/* 2. TABLE SECTION */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-slate-700 overflow-hidden">
@@ -94,8 +80,72 @@ const AdminPayoutsPage = () => {
                     </div>
                 </div>
 
-                {/* The Table */}
-                <div className="overflow-x-auto">
+                {/* Mobile Card View (Visible < md) */}
+                <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-700">
+                    {withdrawals.length > 0 ? (
+                        withdrawals.map((req: any) => (
+                            <div key={req._id} className="p-5 flex flex-col gap-4">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md ring-2 ring-white dark:ring-slate-700">
+                                            {req.username?.substring(0, 2).toUpperCase() || <User size={16} />}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-900 dark:text-white text-sm">
+                                                {req.username}
+                                            </p>
+                                            <p className="text-xs text-slate-500">{req.user?.email}</p>
+                                        </div>
+                                    </div>
+                                    <span className="inline-block font-mono font-bold text-lg text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-600">
+                                        ${Math.abs(req.amount).toFixed(2)}
+                                    </span>
+                                </div>
+
+                                <div className="flex justify-between items-center text-xs text-slate-500">
+                                    <span className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-900/50 px-2 py-1 rounded border border-slate-100 dark:border-slate-700">
+                                        <Calendar size={12} className="text-slate-400" />
+                                        {new Date(req.date).toLocaleDateString()}
+                                    </span>
+                                    <span className="flex items-center gap-1.5">
+                                        {req.transaction.description || 'Standard Withdrawal'}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center gap-3 pt-2">
+                                    <button
+                                        onClick={() => handleProcess(req._id, req.user._id, 'REJECT')}
+                                        disabled={isProcessing}
+                                        className="flex-1 py-2.5 text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-xl font-medium text-sm transition-colors flex justify-center items-center gap-2"
+                                    >
+                                        <XCircle size={18} /> Reject
+                                    </button>
+                                    <button
+                                        onClick={() => handleProcess(req._id, req.user._id, 'APPROVE')}
+                                        disabled={isProcessing}
+                                        className="flex-1 px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold text-sm flex justify-center items-center gap-2 shadow-lg shadow-teal-500/20 transition-all hover:-translate-y-0.5"
+                                    >
+                                        <CheckCircle size={18} /> Approve
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="p-10 flex flex-col items-center justify-center text-center">
+                            <div className="relative mb-4">
+                                <div className="absolute inset-0 bg-teal-500/20 blur-xl rounded-full"></div>
+                                <div className="relative w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full border-2 border-dashed border-slate-200 dark:border-slate-600 flex items-center justify-center">
+                                    <CheckCircle className="text-teal-500" size={28} />
+                                </div>
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">All Caught Up!</h3>
+                            <p className="text-sm text-slate-500 max-w-xs">No pending requests.</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Table View (Hidden < md) */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
@@ -206,7 +256,7 @@ const AdminPayoutsPage = () => {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 

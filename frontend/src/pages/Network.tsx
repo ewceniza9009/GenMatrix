@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import TreeVisualizer from '../components/TreeVisualizer';
+import PageHeader from '../components/PageHeader';
 import HoldingTank from '../components/HoldingTank';
 import NetworkNodeModal from '../components/NetworkNodeModal'; // Import
 import NetworkStatsOverlay from '../components/NetworkStatsOverlay';
@@ -73,6 +74,12 @@ const Network = () => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)] space-y-4">
+      <PageHeader
+        title="Network Geneology"
+        subtitle="Visualize and manage your downline structure."
+        icon={<NetworkIcon size={24} />}
+        className="shrink-0"
+      />
       {/* ... keeping header ... */}
       <div className="flex flex-col md:flex-row justify-start items-start md:items-center shrink-0 gap-4 md:gap-6">
         {/* ... */}

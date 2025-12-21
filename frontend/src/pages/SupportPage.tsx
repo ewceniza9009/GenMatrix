@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGetTicketsQuery, useCreateTicketMutation, useReplyTicketMutation } from '../store/api';
 import { Send, MessageSquare, Clock, CheckCircle, Plus, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import PageHeader from '../components/PageHeader';
 
 const SupportPage = () => {
     const navigate = useNavigate();
@@ -46,17 +47,21 @@ const SupportPage = () => {
 
     return (
         <div className="flex flex-col h-[calc(100vh-8rem)]">
-            <div className="mb-4">
-                <button
-                    onClick={() => navigate('/dashboard/help')}
-                    className="flex items-center gap-2 text-gray-500 hover:text-teal-600 transition-colors font-medium text-sm group w-fit"
-                >
-                    <div className="bg-white dark:bg-[#1a1b23] p-1.5 rounded-lg border border-gray-200 dark:border-white/10 group-hover:border-teal-500/50 shadow-sm">
+            <PageHeader
+                title="Support Dashboard"
+                subtitle="Track and manage your support requests."
+                icon={<MessageSquare size={24} />}
+                className="shrink-0"
+                actions={
+                    <button
+                        onClick={() => navigate('/dashboard/help')}
+                        className="flex items-center gap-2 text-gray-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-white transition-colors bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-3 py-2 rounded-lg text-sm font-medium"
+                    >
                         <ArrowLeft size={16} />
-                    </div>
-                    Back to Help Center
-                </button>
-            </div>
+                        <span className="hidden sm:inline">Back to Help Center</span>
+                    </button>
+                }
+            />
 
             <div className="flex flex-1 md:gap-6 relative overflow-hidden">
                 {/* Sidebar List */}

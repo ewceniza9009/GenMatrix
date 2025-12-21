@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Package, Plus, Edit2, Trash2, X, Save } from 'lucide-react';
 import { useGetPackagesQuery, useCreatePackageMutation, useUpdatePackageMutation, useDeletePackageMutation } from '../store/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import PageHeader from '../components/PageHeader';
 
 import { useUI } from '../components/UIContext';
 
@@ -108,17 +109,19 @@ const AdminPackages = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                    <Package size={24} className="md:w-8 md:h-8 text-teal-600 dark:text-teal-400" /> Package Management
-                </h1>
-                <button
-                    onClick={handleOpenCreate}
-                    className="w-full sm:w-auto bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 font-bold transition-colors"
-                >
-                    <Plus size={20} /> Create Package
-                </button>
-            </div>
+            <PageHeader
+                title="Package Management"
+                subtitle="Create and manage enrollment packages."
+                icon={<Package size={24} />}
+                actions={
+                    <button
+                        onClick={handleOpenCreate}
+                        className="w-full sm:w-auto bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 font-bold transition-colors"
+                    >
+                        <Plus size={20} /> Create Package
+                    </button>
+                }
+            />
 
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden">
                 {isLoading ? (

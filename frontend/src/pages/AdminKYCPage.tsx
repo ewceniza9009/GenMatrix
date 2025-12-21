@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useGetPendingKYCQuery, useUpdateKYCStatusMutation } from '../store/api';
-import { CheckCircle, XCircle, Eye, Calendar } from 'lucide-react';
-
+import { CheckCircle, XCircle, Eye, Calendar, FileCheck } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { useUI } from '../components/UIContext';
 
 const AdminKYCPage = () => {
@@ -59,7 +59,11 @@ const AdminKYCPage = () => {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pending KYC Requests</h1>
+            <PageHeader
+                title="Pending KYC Requests"
+                subtitle="Review and verify user identification documents."
+                icon={<FileCheck size={24} />}
+            />
 
             {/* Grid of Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

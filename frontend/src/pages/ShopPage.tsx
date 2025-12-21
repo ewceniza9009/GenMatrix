@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { ShoppingBag, Search, Filter, ShoppingCart, Plus, AlertTriangle } from 'lucide-react';
+import { ShoppingBag, Search, Filter, ShoppingCart, Plus } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { useGetShopProductsQuery } from '../store/api';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
@@ -16,7 +17,6 @@ const ShopPage = () => {
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const [selectedProduct, setSelectedProduct] = useState<any | null>(null); // Selected Product State
     const { addToCart, toggleCart, itemCount } = useCart();
-    const { user } = useSelector((state: RootState) => state.auth);
 
     // Wishlist
     const { data: wishlist } = useGetWishlistQuery({});
@@ -46,49 +46,49 @@ const ShopPage = () => {
     return (
         <div className="relative min-h-screen">
             {/* Header / Toolbar */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Product Shop</h1>
-                    <p className="text-gray-500 dark:text-slate-400">Purchase products to boost your volume</p>
-
-                    {user?.status === 'pending_payment' && (
-                        <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3">
-                            <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={20} />
-                            <div>
-                                <h3 className="font-bold text-amber-500">Account Activation Required</h3>
-                                <p className="text-sm text-amber-500/80">
-                                    Please purchase an enrollment product to activate your account and secure your position in the network.
-                                    Once your purchase is confirmed, you will be automatically placed.
-                                </p>
-                            </div>
+            {/* Header / Toolbar */}
+            <PageHeader
+                title="Product Shop"
+                subtitle="Purchase products to boost your volume."
+                icon={<ShoppingBag size={24} />}
+                actions={
+                    <div className="flex items-center gap-3">
+                        <div className="relative hidden md:block">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <input
+                                type="text"
+                                placeholder="Search products..."
+                                className="pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1b23] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 w-64 shadow-sm text-sm"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
                         </div>
-                    )}
-                </div>
 
-                <div className="flex items-center gap-3">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                        <input
-                            type="text"
-                            placeholder="Search products..."
-                            className="pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1b23] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 w-full md:w-64 shadow-sm"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                        <button
+                            onClick={toggleCart}
+                            className="relative p-2 bg-white dark:bg-[#1a1b23] border border-gray-200 dark:border-white/10 rounded-lg hover:shadow-md transition-all group"
+                        >
+                            <ShoppingCart className="text-gray-700 dark:text-gray-200 group-hover:text-teal-500 transition-colors" size={20} />
+                            {itemCount > 0 && (
+                                <span className="absolute -top-1 -right-1 w-4 h-4 bg-teal-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border border-white dark:border-[#1a1b23]">
+                                    {itemCount}
+                                </span>
+                            )}
+                        </button>
                     </div>
+                }
+            />
 
-                    <button
-                        onClick={toggleCart}
-                        className="relative p-3 bg-white dark:bg-[#1a1b23] border border-gray-200 dark:border-white/10 rounded-xl hover:shadow-md transition-all group"
-                    >
-                        <ShoppingCart className="text-gray-700 dark:text-gray-200 group-hover:text-teal-500 transition-colors" size={22} />
-                        {itemCount > 0 && (
-                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-teal-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white dark:border-[#1a1b23]">
-                                {itemCount}
-                            </span>
-                        )}
-                    </button>
-                </div>
+            {/* Mobile Search - Visible only on mobile below header */}
+            <div className="md:hidden mb-6 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                    type="text"
+                    placeholder="Search products..."
+                    className="pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1b23] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 w-full shadow-sm"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
             </div>
 
             <div className="flex flex-col lg:flex-row gap-8 items-start">

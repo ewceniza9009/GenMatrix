@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useGetAdminCommissionsQuery } from '../store/api';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { useUI } from '../components/UIContext';
-import { Download, AlertCircle, ChevronLeft, ChevronRight, Search, ArrowUpDown } from 'lucide-react';
+import { Download, AlertCircle, ChevronLeft, ChevronRight, Search, ArrowUpDown, Banknote } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 
 const AdminCommissions = () => {
     const { token } = useSelector((state: RootState) => state.auth);
@@ -79,27 +80,31 @@ const AdminCommissions = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Commission Runs</h1>
-                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                    <div className="relative flex-1 md:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                        <input
-                            type="text"
-                            placeholder="Search user, type..."
-                            className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500 outline-none"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
+            <PageHeader
+                title="Commission Runs"
+                subtitle="History of all distributed commissions."
+                icon={<Banknote size={24} />}
+                actions={
+                    <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                        <div className="relative flex-1 md:w-64">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            <input
+                                type="text"
+                                placeholder="Search user, type..."
+                                className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
+                        <button
+                            onClick={handleExportCSV}
+                            className="bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 text-teal-600 dark:text-teal-400 border border-gray-200 dark:border-slate-600 px-3 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm"
+                        >
+                            <Download size={16} /> <span className="hidden sm:inline">Export CSV</span>
+                        </button>
                     </div>
-                    <button
-                        onClick={handleExportCSV}
-                        className="bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 text-teal-600 dark:text-teal-400 border border-gray-200 dark:border-slate-600 px-3 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm"
-                    >
-                        <Download size={16} /> <span className="hidden sm:inline">Export CSV</span>
-                    </button>
-                </div>
-            </div>
+                }
+            />
 
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden shadow-sm dark:shadow-none flex flex-col min-h-[500px]">
                 <div className="overflow-x-auto flex-1">

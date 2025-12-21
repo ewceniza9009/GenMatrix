@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useGetMyOrdersQuery } from '../store/api';
-import { Package, Calendar, DollarSign, Clock, CheckCircle, XCircle, Truck, ChevronRight } from 'lucide-react';
+import { Package, Calendar, Clock, CheckCircle, XCircle, Truck } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { format } from 'date-fns';
 
 const OrderHistoryPage = () => {
@@ -28,13 +29,11 @@ const OrderHistoryPage = () => {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <Package className="text-teal-500" />
-                    Order History
-                </h1>
-                <p className="text-gray-500 dark:text-slate-400">View and track your past purchases.</p>
-            </div>
+            <PageHeader
+                title="Order History"
+                subtitle="View and track your past purchases."
+                icon={<Package size={24} />}
+            />
 
             {isLoading ? (
                 <div className="text-center py-20 text-gray-400">Loading orders...</div>

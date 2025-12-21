@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { useUploadKYCMutation, useGenerate2FAMutation, useVerify2FAMutation, useDisable2FAMutation } from '../store/api';
 import { Shield, CheckCircle, XCircle, Loader, Upload, Smartphone } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 
 import { useUI } from '../components/UIContext';
 
@@ -85,7 +86,11 @@ const SecuritySettings = () => {
 
     return (
         <div className="space-y-6">
-            <h2 className="text-xl font-bold dark:text-white">Security & Compliance</h2>
+            <PageHeader
+                title="Security & Compliance"
+                subtitle="Manage your account security and verification."
+                icon={<Shield size={24} />}
+            />
 
             {/* KYC Section */}
             <div className="bg-white dark:bg-[#1a1b23] p-6 rounded-xl border border-gray-200 dark:border-white/5 shadow-sm">

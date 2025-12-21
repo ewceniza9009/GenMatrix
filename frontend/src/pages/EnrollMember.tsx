@@ -5,6 +5,7 @@ import { RootState } from '../store';
 import { useRegisterMutation, useLazySearchDownlineQuery, useGetPackagesQuery, useGetSettingsQuery } from '../store/api';
 import React, { useState, useEffect, useRef } from 'react';
 import { UserPlus, ArrowLeft, CheckCircle, AlertCircle, Package } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 
 const EnrollMember = () => {
   const navigate = useNavigate();
@@ -102,25 +103,24 @@ const EnrollMember = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <button
-        onClick={() => navigate('/dashboard')}
-        className="flex items-center space-x-2 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white mb-6 transition-colors"
-      >
-        <ArrowLeft size={20} />
-        <span>Back to Dashboard</span>
-      </button>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <PageHeader
+        title="Enroll New Member"
+        subtitle="Add a new distributor directly to your downline."
+        icon={<UserPlus size={24} />}
+        actions={
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center space-x-2 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white transition-colors bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-3 py-2 rounded-lg text-sm font-medium"
+          >
+            <ArrowLeft size={16} />
+            <span>Back to Dashboard</span>
+          </button>
+        }
+      />
 
       <div className="bg-white dark:bg-slate-800 p-5 md:p-8 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 md:mb-8">
-          <div className="w-12 h-12 bg-teal-500 rounded-lg flex items-center justify-center shrink-0">
-            <UserPlus className="text-white w-6 h-6 md:w-7 md:h-7" />
-          </div>
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Enroll New Member</h1>
-            <p className="text-sm md:text-base text-gray-500 dark:text-slate-400">Add a new distributor directly to your downline</p>
-          </div>
-        </div>
+        {/* Header Removed */}
 
         {error && (
           <div className="mb-6 bg-red-100 dark:bg-red-500/10 border border-red-500/50 p-4 rounded-lg flex items-center space-x-3 text-red-700 dark:text-red-400">

@@ -6,6 +6,7 @@ import { Sliders, Shield, Network, Settings as SettingsIcon, Save, User } from '
 import { motion } from 'framer-motion';
 import PersonalSettings from '../components/settings/PersonalSettings';
 import SecuritySettings from './SecuritySettings';
+import PageHeader from '../components/PageHeader';
 
 import { useUI } from '../components/UIContext';
 
@@ -94,15 +95,11 @@ const Settings = () => {
 
   return (
     <div className="w-full mx-auto space-y-6 md:space-y-8 pb-12 animate-fade-in-up">
-      <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
-        <div className="bg-teal-500/10 p-3 rounded-2xl">
-          <SettingsIcon size={32} className="text-teal-500" />
-        </div>
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Settings & Preferences</h1>
-          <p className="text-slate-500 dark:text-slate-400">Manage your account and system security</p>
-        </div>
-      </div>
+      <PageHeader
+        title="Settings & Preferences"
+        subtitle="Manage your account and system security"
+        icon={<SettingsIcon size={32} />}
+      />
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 md:gap-4 border-b border-gray-200 dark:border-white/10 pb-1">

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useGetAllOrdersQuery, useUpdateOrderStatusMutation } from '../store/api';
-import { CheckCircle, XCircle, Clock } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, ShoppingCart } from 'lucide-react';
 import { DataTable } from '../components/DataTable';
+import PageHeader from '../components/PageHeader';
 import { useUI } from '../components/UIContext';
 
 const AdminOrdersPage = () => {
@@ -157,8 +158,13 @@ const AdminOrdersPage = () => {
 
     return (
         <div className="space-y-6 animation-fade-in">
-            <DataTable
+            <PageHeader
                 title="Order Management"
+                subtitle="Review and process customer orders."
+                icon={<ShoppingCart size={24} />}
+            />
+            <DataTable
+                title=""
                 columns={columns}
                 data={data?.data || []}
                 total={data?.total || 0}
