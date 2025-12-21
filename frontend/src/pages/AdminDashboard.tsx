@@ -229,27 +229,28 @@ const AdminDashboard = () => {
         </div>
 
         {/* Action Control Panel */}
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6 rounded-2xl shadow-lg flex flex-col relative overflow-hidden">
+        {/* Action Control Panel */}
+        <div className="bg-gradient-to-r from-teal-900 to-slate-900 text-white p-6 rounded-2xl shadow-lg flex flex-col relative overflow-hidden">
           {/* Background decoration */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 transform translate-x-10 -translate-y-10"></div>
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1605792657660-596af9009e82?q=80&w=2002&auto=format&fit=crop')] opacity-30 bg-cover bg-center mix-blend-overlay"></div>
 
           <h2 className="text-lg font-bold mb-1 z-10">Commission Engine</h2>
-          <p className="text-slate-400 text-xs mb-6 z-10">Manage system payouts and calculations.</p>
+          <p className="text-teal-200 text-xs mb-6 z-10">Manage system payouts and calculations.</p>
 
           <div className="space-y-4 z-10 flex-grow">
-            <div className="bg-slate-700/50 p-4 rounded-xl border border-slate-600/50">
+            <div className="bg-white/5 p-4 rounded-xl border border-white/10 backdrop-blur-sm">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-xs font-mono text-slate-300">NEXT PAYOUT</span>
+                <span className="text-xs font-mono text-teal-200">NEXT PAYOUT</span>
                 <span className="text-xs font-bold text-teal-400">READY</span>
               </div>
-              <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
-                <div className="h-full bg-teal-500 w-full animate-pulse"></div>
+              <div className="h-1.5 w-full bg-slate-700/50 rounded-full overflow-hidden">
+                <div className="h-full bg-teal-400 w-full animate-pulse"></div>
               </div>
             </div>
 
-            <div className="bg-slate-700/50 p-4 rounded-xl border border-slate-600/50">
+            <div className="bg-white/5 p-4 rounded-xl border border-white/10 backdrop-blur-sm">
               <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-300">Users Qualified</span>
+                <span className="text-xs text-teal-200">Users Qualified</span>
                 <span className="text-sm font-bold text-white">{statsData?.totalUsers || 0}</span>
               </div>
             </div>
@@ -259,7 +260,7 @@ const AdminDashboard = () => {
             onClick={handleRunCommissions}
             disabled={processing}
             className={`
-              mt-6 w-full py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg
+              mt-6 w-full py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg z-10
               ${processing
                 ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
                 : 'bg-teal-500 hover:bg-teal-400 text-white shadow-teal-900/50'}
@@ -276,7 +277,7 @@ const AdminDashboard = () => {
           </button>
 
           {lastRun && (
-            <div className={`mt-4 text-xs text-center p-2 rounded-lg ${lastRun.includes('Failed') ? 'bg-red-500/20 text-red-300' : 'bg-green-500/20 text-green-300'}`}>
+            <div className={`mt-4 text-xs text-center p-2 rounded-lg z-10 ${lastRun.includes('Failed') ? 'bg-red-500/20 text-red-300' : 'bg-green-500/20 text-green-300'}`}>
               {lastRun}
             </div>
           )}
