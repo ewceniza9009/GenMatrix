@@ -141,23 +141,25 @@ const WalletPage = () => {
       {activeSection === 'overview' && (
         <div className="flex flex-col md:flex-row gap-6 animate-fade-in">
           {/* BALANCE CARD */}
-          <div className="w-full md:w-1/3 min-w-[300px] bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-slate-300 dark:shadow-black/40">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+          <div className="w-full md:w-1/3 min-w-[300px] bg-gradient-to-r from-teal-900 to-slate-900 rounded-3xl relative overflow-hidden shadow-xl shadow-slate-300 dark:shadow-black/40">
+            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1605792657660-596af9009e82?q=80&w=2002&auto=format&fit=crop')] opacity-30 bg-cover bg-center mix-blend-overlay"></div>
 
-            <h2 className="text-slate-400 text-sm font-medium uppercase tracking-wider mb-1">Total Balance</h2>
-            <div className="flex items-baseline gap-1 mb-8">
-              <span className="text-4xl md:text-5xl font-black tracking-tight">${wallet?.balance?.toFixed(2) || '0.00'}</span>
-              <span className="text-teal-400 text-sm font-bold">USD</span>
-            </div>
+            <div className="relative p-6 md:p-8 text-white flex flex-col h-full">
+              <h2 className="text-teal-200 text-sm font-medium uppercase tracking-wider mb-1">Total Balance</h2>
+              <div className="flex items-baseline gap-1 mb-8">
+                <span className="text-4xl md:text-5xl font-black tracking-tight">${wallet?.balance?.toFixed(2) || '0.00'}</span>
+                <span className="text-teal-400 text-sm font-bold">USD</span>
+              </div>
 
-            <div className="mt-auto">
-              <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
-                <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400">
-                  <ArrowDownLeft size={20} />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 font-bold uppercase">Income</p>
-                  <p className="font-bold">+${wallet?.totalEarnings?.toFixed(2) || '0.00'}</p>
+              <div className="mt-auto">
+                <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
+                  <div className="w-10 h-10 rounded-lg bg-teal-500/20 flex items-center justify-center text-teal-400">
+                    <ArrowDownLeft size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-teal-200 font-bold uppercase">Income</p>
+                    <p className="font-bold">+${wallet?.totalEarnings?.toFixed(2) || '0.00'}</p>
+                  </div>
                 </div>
               </div>
             </div>
