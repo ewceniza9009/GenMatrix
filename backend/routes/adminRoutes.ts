@@ -19,4 +19,13 @@ router.get('/users', protect, admin, getAllUsers);
 router.put('/users/role', protect, admin, updateUserRole);
 router.patch('/users/status', protect, admin, toggleUserStatus);
 
+import { getAllIdeas, createIdea, updateIdea, deleteIdea, promoteIdea } from '../controllers/productIdeaController';
+
+// Product Lab (Ideas)
+router.get('/product-ideas', protect, admin, getAllIdeas);
+router.post('/product-ideas', protect, admin, createIdea);
+router.put('/product-ideas/:id', protect, admin, updateIdea);
+router.delete('/product-ideas/:id', protect, admin, deleteIdea);
+router.post('/product-ideas/:id/promote', protect, admin, promoteIdea);
+
 export default router;

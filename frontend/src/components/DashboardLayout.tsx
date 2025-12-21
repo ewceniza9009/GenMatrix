@@ -14,7 +14,8 @@ import {
   CreditCard,
   FileText,
   Heart,
-  HelpCircle
+  HelpCircle,
+  FlaskConical
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../store/authSlice';
@@ -167,6 +168,7 @@ const DashboardLayout = () => {
                       title: 'Catalog',
                       items: [
                         { icon: Package, label: 'Packages', path: '/dashboard/admin/packages' },
+                        { icon: FlaskConical, label: 'Product Lab', path: '/dashboard/admin/product-ideas' },
                         ...(shopStatus?.enableShop ? [{ icon: ShoppingBag, label: 'Products', path: '/dashboard/admin/products' }] : [])
                       ]
                     },

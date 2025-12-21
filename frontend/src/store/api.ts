@@ -466,6 +466,45 @@ export const api = createApi({
       }),
       invalidatesTags: ['Tasks'],
     }),
+    // Product Lab (Ideas)
+    getProductIdeas: builder.query({
+      query: (params) => {
+        if (!params) return 'admin/product-ideas';
+        const qs = new URLSearchParams(params).toString();
+        return `admin/product-ideas?${qs}`;
+      },
+      providesTags: ['Packages'], // Using Packages tag temporarily or distinct 'Ideas'
+    }),
+    createProductIdea: builder.mutation({
+      query: (body) => ({
+        url: 'admin/product-ideas',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Packages'],
+    }),
+    updateProductIdea: builder.mutation({
+      query: ({ id, ...body }) => ({
+        url: `admin/product-ideas/${id}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Packages'],
+    }),
+    deleteProductIdea: builder.mutation({
+      query: (id) => ({
+        url: `admin/product-ideas/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Packages'],
+    }),
+    promoteProductIdea: builder.mutation({
+      query: (id) => ({
+        url: `admin/product-ideas/${id}/promote`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Packages', 'Products'], // Invalidate both
+    }),
   }),
 });
 
@@ -541,5 +580,10 @@ export const {
   useUpdateOrderStatusMutation,
   useGetLeaderboardQuery,
   useGetTasksQuery,
-  useUpdateTaskStatusMutation
+  useUpdateTaskStatusMutation,
+  useGetProductIdeasQuery,
+  useCreateProductIdeaMutation,
+  useUpdateProductIdeaMutation,
+  useDeleteProductIdeaMutation,
+  usePromoteProductIdeaMutation
 } = api;

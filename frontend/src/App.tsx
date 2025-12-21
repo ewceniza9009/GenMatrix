@@ -33,6 +33,7 @@ import AdminKYCPage from './pages/AdminKYCPage';
 import AdminSettingsPage from './pages/AdminSettingsPage';
 import AdminProductsPage from './pages/AdminProductsPage';
 import AdminOrdersPage from './pages/AdminOrdersPage';
+import AdminProductLab from './pages/AdminProductLab';
 
 // Help & Resources
 import HelpPage from './pages/HelpPage';
@@ -92,6 +93,7 @@ function App() {
           <Route path="admin/settings" element={<AdminSettingsPage />} />
           <Route path="admin/products" element={<AdminProductsPage />} />
           <Route path="admin/orders" element={<AdminOrdersPage />} />
+          <Route path="admin/product-ideas" element={<AdminProductLab />} />
         </Route>
 
         {/* Redirect Legacy Routes */}
