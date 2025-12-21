@@ -1,27 +1,20 @@
-import React from 'react';
-import { useGetTreeQuery } from '../../store/api';
-import { User, Zap, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
-const MatrixTree = () => {
-    // We re-use getTree because Matrix View is just a visual re-arrangement of the same data structure (Binary Tree)
-    // Ideally we might want a different endpoint if we need deeper levels at once, but getTree(depth=4) is a good start.
-    const { data: treeData, isLoading } = useGetTreeQuery(undefined);
-
+const MatrixTree = ({ data }: { data: any }) => {
     // Flatten the tree into levels for Matrix rendering
-    // Breadth-First Search to organize by rank/level? 
-    // Matrix view usually shows:
-    // Level 1: [Left, Right]
-    // Level 2: [LL, LR, RL, RR]
-
     const renderLevel = (nodes: any[], levelIndex: number) => {
         if (nodes.length === 0) return null;
 
         return (
-            <div key={levelIndex} className="mb-8 relative z-10">
-                <div className="flex justify-center mb-2">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-slate-900 px-2 py-1 rounded">Level {levelIndex + 1}</span>
+            <div key={levelIndex} className="mb-8 relative z-10 w-full">
+                <div className="flex justify-center mb-4">
+                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-3 py-1 rounded-full shadow-sm mb-2 z-20">
+                        <span className="text-xs font-bold text-indigo-500 uppercase tracking-widest">
+                            Generation {levelIndex + 1}
+                        </span>
+                    </div>
                 </div>
-                <div className="flex justify-center gap-4 sm:gap-8 flex-wrap">
+                <div className="flex justify-center gap-4 sm:gap-6 flex-wrap px-4">
                     {nodes.map((node, i) => (
                         <MatrixNode key={`${levelIndex}-${i}`} node={node} />
                     ))}
@@ -30,8 +23,7 @@ const MatrixTree = () => {
         );
     };
 
-    // Helper to generate levels
-    const generateLevels = (root: any, maxDepth: number = 4) => {
+    const generateLevels = (root: any, maxDepth: number = 5) => {
         if (!root) return [];
         const levels = [];
         let queue = [root];
@@ -41,10 +33,6 @@ const MatrixTree = () => {
             levels.push(currentLevel);
 
             const nextLevel: any[] = [];
-            // For binary matrix, we ALWAYS need to show slots, even if empty?
-            // That is complex. For now, let's just show filld nodes and gaps if we can infer them.
-            // Actually, simple "Matrix View" usually just centers the nodes.
-
             currentLevel.forEach(node => {
                 if (node.children && node.children.length > 0) {
                     nextLevel.push(...node.children);
@@ -57,9 +45,9 @@ const MatrixTree = () => {
         return levels;
     };
 
-    const levels = treeData ? generateLevels(treeData) : [];
+    const levels = data ? generateLevels(data) : [];
 
-    if (isLoading) return <div className="p-10 text-center animate-pulse">Loading Matrix...</div>;
+    if (!data) return <div className="p-10 text-center animate-pulse text-gray-400">Loading Matrix Data...</div>;
 
     return (
         <div className="h-full overflow-auto bg-gray-50/50 dark:bg-slate-900/50 p-6 rounded-xl border border-gray-200 dark:border-slate-800 relative">

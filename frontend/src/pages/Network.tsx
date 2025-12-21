@@ -36,9 +36,12 @@ const Network = () => {
     skip: viewMode === 'downline' || !rootId
   });
 
-  const treeData = viewMode === 'downline' ? downlineData : uplineData;
-  const isTreeLoading = viewMode === 'downline' ? isDownlineLoading : isUplineLoading;
-  const treeError = viewMode === 'downline' ? downlineError : uplineError;
+  // Determine which data to use based on view mode
+  // 'matrix' view is just a different visual of the 'downline' data
+  const isUplineView = viewMode === 'upline';
+  const treeData = isUplineView ? uplineData : downlineData;
+  const isTreeLoading = isUplineView ? isUplineLoading : isDownlineLoading;
+  const treeError = isUplineView ? uplineError : downlineError;
 
   const handleExport = () => {
     if (!treeData) return;
@@ -111,7 +114,7 @@ const Network = () => {
                 }`}
             >
               <Grid size={14} />
-              Matrix
+              Generations
             </button>
             <button
               onClick={() => setViewMode('list')}
@@ -282,7 +285,7 @@ const Network = () => {
           </div>
         ) : viewMode === 'matrix' ? (
           <div className="h-full overflow-hidden">
-            <MatrixTree />
+            <MatrixTree data={treeData} />
           </div>
         ) : (
           <TreeVisualizer

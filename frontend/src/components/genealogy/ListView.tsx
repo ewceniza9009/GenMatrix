@@ -33,14 +33,15 @@ const ListView = () => {
             label: 'Rank',
             key: 'rank',
             render: (row: any) => (
-                <span className={`px-2 py-1 rounded text-xs font-bold
-                ${row.rank === 'Diamond' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
-                        row.rank === 'Gold' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' :
-                            row.rank === 'Silver' ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' :
-                                'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300'
+                <span className={`px-2 py-1 rounded text-xs font-bold ring-1 ring-inset
+                ${row.rank === 'Diamond' ? 'bg-cyan-50 text-cyan-700 ring-cyan-600/20 dark:bg-cyan-900/30 dark:text-cyan-300' :
+                        row.rank === 'Gold' ? 'bg-yellow-50 text-yellow-700 ring-yellow-600/20 dark:bg-yellow-900/30 dark:text-yellow-300' :
+                            row.rank === 'Silver' ? 'bg-slate-50 text-slate-700 ring-slate-600/20 dark:bg-slate-800 dark:text-slate-300' :
+                                row.rank === 'Bronze' ? 'bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-400' :
+                                    'bg-gray-50 text-gray-600 ring-gray-500/10 dark:bg-gray-800 dark:text-gray-400'
                     }
             `}>
-                    {row.rank}
+                    {row.rank || 'Member'}
                 </span>
             )
         },
